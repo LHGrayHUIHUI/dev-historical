@@ -1,0 +1,374 @@
+# AlertManager 配置文件
+# Historical Text Project - 告警管理配置
+
+global:
+  # 默认SMTP配置（用于邮件告警）
+  smtp_smarthost: ${SMTP_HOST:smtp.gmail.com:587}
+  smtp_from: ${ALERT_EMAIL_FROM:alerts@historical-text.com}
+  smtp_auth_username: ${SMTP_USERNAME}
+  smtp_auth_password: ${SMTP_PASSWORD}
+  smtp_require_tls: true
+  
+  # 外部URL配置
+  http_config:
+    tls_config:
+      insecure_skip_verify: true
+  
+  # 全局标签
+  external_labels:
+    cluster: 'historical-text-prod'
+    environment: '${ENVIRONMENT:production}'
+
+# 告警模板
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# 路由配置
+route:
+  # 默认接收者
+  receiver: 'default-receiver'
+  
+  # 分组配置
+  group_by: 
+    - 'alertname'
+    - 'cluster'
+    - 'service'
+  
+  # 分组等待时间（等待同组告警一起发送）
+  group_wait: 10s
+  
+  # 分组间隔（同组告警的发送间隔）
+  group_interval: 10s
+  
+  # 重复告警间隔（同一告警的重复发送间隔）
+  repeat_interval: 1h
+  
+  # 子路由配置
+  routes:
+    # 严重告警路由（立即通知）
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 0s
+      repeat_interval: 5m
+      continue: true
+    
+    # 安全告警路由
+    - match:
+        team: security
+      receiver: 'security-alerts'
+      group_wait: 0s
+      repeat_interval: 15m
+      continue: true
+    
+    # 业务告警路由
+    - match_re:
+        component: '(data-collection|data-processing|text-extraction)'
+      receiver: 'business-alerts'
+      group_interval: 5m
+      repeat_interval: 30m
+    
+    # 基础设施告警路由
+    - match_re:
+        component: '(infrastructure|database|message-queue)'
+      receiver: 'infrastructure-alerts'
+      group_interval: 2m
+      repeat_interval: 15m
+    
+    # 开发团队告警路由
+    - match:
+        team: development
+      receiver: 'development-alerts'
+      group_interval: 5m
+      repeat_interval: 1h
+    
+    # 数据库团队告警路由
+    - match:
+        team: database
+      receiver: 'database-alerts'
+      group_interval: 3m
+      repeat_interval: 30m
+    
+    # 平台团队告警路由
+    - match:
+        team: platform
+      receiver: 'platform-alerts'
+      group_interval: 2m
+      repeat_interval: 20m
+    
+    # 信息级别告警（低优先级）
+    - match:
+        severity: info
+      receiver: 'info-alerts'
+      group_interval: 10m
+      repeat_interval: 4h
+
+# 抑制规则（防止告警风暴）
+inhibit_rules:
+  # 当节点宕机时，抑制该节点上的其他所有告警
+  - source_match:
+      alertname: NodeDown
+    target_match_re:
+      instance: '(.+)'
+    equal: ['instance']
+  
+  # 当服务完全宕机时，抑制该服务的响应时间和错误率告警
+  - source_match:
+      alertname: ServiceDown
+    target_match_re:
+      alertname: '(HighResponseTime|HighErrorRate)'
+    equal: ['job']
+  
+  # 当磁盘空间严重不足时，抑制磁盘IO告警
+  - source_match:
+      alertname: LowDiskSpace
+      severity: critical
+    target_match:
+      alertname: HighDiskIOUsage
+    equal: ['instance', 'device']
+  
+  # 当数据库连接池满时，抑制慢查询告警
+  - source_match_re:
+      alertname: '(PostgreSQLHighConnections|RedisHighConnections|MongoDBHighConnections)'
+    target_match_re:
+      alertname: '(.+)SlowQueries'
+    equal: ['instance']
+
+# 接收者配置
+receivers:
+  # 默认接收者
+  - name: 'default-receiver'
+    email_configs:
+      - to: '${DEFAULT_EMAIL_TO:admin@historical-text.com}'
+        subject: '[历史文本项目] {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+        body: |
+          {{ range .Alerts }}
+          告警名称: {{ .Labels.alertname }}
+          告警级别: {{ .Labels.severity }}
+          服务名称: {{ .Labels.job | default "未知" }}
+          告警描述: {{ .Annotations.description }}
+          告警时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ if .Labels.runbook_url }}处理手册: {{ .Labels.runbook_url }}{{ end }}
+          {{ end }}
+        html: |
+          <h2>历史文本项目告警通知</h2>
+          <table border="1" style="border-collapse: collapse;">
+            <tr>
+              <th>告警名称</th>
+              <th>级别</th>
+              <th>服务</th>
+              <th>描述</th>
+              <th>时间</th>
+              <th>操作</th>
+            </tr>
+            {{ range .Alerts }}
+            <tr>
+              <td>{{ .Labels.alertname }}</td>
+              <td style="color: {{ if eq .Labels.severity "critical" }}red{{ else if eq .Labels.severity "warning" }}orange{{ else }}blue{{ end }}">{{ .Labels.severity }}</td>
+              <td>{{ .Labels.job | default "未知" }}</td>
+              <td>{{ .Annotations.description }}</td>
+              <td>{{ .StartsAt.Format "2006-01-02 15:04:05" }}</td>
+              <td>
+                {{ if .Labels.runbook_url }}<a href="{{ .Labels.runbook_url }}">处理手册</a>{{ end }}
+                {{ if .Labels.dashboard_url }}<a href="{{ .Labels.dashboard_url }}">查看仪表板</a>{{ end }}
+              </td>
+            </tr>
+            {{ end }}
+          </table>
+
+  # 严重告警接收者
+  - name: 'critical-alerts'
+    email_configs:
+      - to: '${CRITICAL_EMAIL_TO:oncall@historical-text.com}'
+        subject: '[🚨 CRITICAL] {{ .GroupLabels.alertname }} - {{ .GroupLabels.job }}'
+        body: |
+          🚨 严重告警警报！
+          
+          {{ range .Alerts }}
+          告警: {{ .Labels.alertname }}
+          服务: {{ .Labels.job }}
+          实例: {{ .Labels.instance }}
+          描述: {{ .Annotations.description }}
+          开始时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ if .Labels.runbook_url }}
+          处理手册: {{ .Labels.runbook_url }}
+          {{ end }}
+          {{ end }}
+          
+          请立即处理！
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts-critical'
+        title: '🚨 严重告警'
+        text: |
+          {{ range .Alerts }}
+          *告警*: {{ .Labels.alertname }}
+          *服务*: {{ .Labels.job }}
+          *实例*: {{ .Labels.instance }}
+          *描述*: {{ .Annotations.description }}
+          *时间*: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+        color: 'danger'
+        send_resolved: true
+    
+    webhook_configs:
+      - url: '${WEBHOOK_URL_CRITICAL}'
+        http_config:
+          bearer_token: '${WEBHOOK_TOKEN}'
+        send_resolved: true
+
+  # 安全告警接收者
+  - name: 'security-alerts'
+    email_configs:
+      - to: '${SECURITY_EMAIL_TO:security@historical-text.com}'
+        subject: '[🔒 SECURITY] {{ .GroupLabels.alertname }}'
+        body: |
+          🔒 安全告警
+          
+          {{ range .Alerts }}
+          告警: {{ .Labels.alertname }}
+          服务: {{ .Labels.job | default "系统" }}
+          实例: {{ .Labels.instance | default "未知" }}
+          描述: {{ .Annotations.description }}
+          时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          {{ if .Labels.client_ip }}来源IP: {{ .Labels.client_ip }}{{ end }}
+          {{ if .Labels.user_id }}用户ID: {{ .Labels.user_id }}{{ end }}
+          {{ end }}
+          
+          请及时处理安全事件！
+    
+    slack_configs:
+      - api_url: '${SECURITY_SLACK_WEBHOOK_URL}'
+        channel: '#security-alerts'
+        title: '🔒 安全告警'
+        text: |
+          {{ range .Alerts }}
+          *告警*: {{ .Labels.alertname }}
+          *描述*: {{ .Annotations.description }}
+          *时间*: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ if .Labels.client_ip }}*来源IP*: {{ .Labels.client_ip }}{{ end }}
+          {{ end }}
+        color: 'warning'
+
+  # 业务告警接收者
+  - name: 'business-alerts'
+    email_configs:
+      - to: '${BUSINESS_EMAIL_TO:business@historical-text.com}'
+        subject: '[📊 BUSINESS] {{ .GroupLabels.alertname }}'
+        body: |
+          📊 业务告警
+          
+          {{ range .Alerts }}
+          告警: {{ .Labels.alertname }}
+          服务: {{ .Labels.job }}
+          组件: {{ .Labels.component }}
+          描述: {{ .Annotations.description }}
+          时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#business-alerts'
+        title: '📊 业务告警'
+        color: 'warning'
+
+  # 基础设施告警接收者
+  - name: 'infrastructure-alerts'
+    email_configs:
+      - to: '${INFRA_EMAIL_TO:infrastructure@historical-text.com}'
+        subject: '[🖥️ INFRASTRUCTURE] {{ .GroupLabels.alertname }}'
+        body: |
+          🖥️ 基础设施告警
+          
+          {{ range .Alerts }}
+          告警: {{ .Labels.alertname }}
+          节点: {{ .Labels.instance }}
+          组件: {{ .Labels.component | default "基础设施" }}
+          描述: {{ .Annotations.description }}
+          当前值: {{ .Annotations.value | default "N/A" }}
+          时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#infrastructure-alerts'
+        title: '🖥️ 基础设施告警'
+        color: '#ff9900'
+
+  # 开发团队告警接收者
+  - name: 'development-alerts'
+    email_configs:
+      - to: '${DEV_EMAIL_TO:dev-team@historical-text.com}'
+        subject: '[💻 DEV] {{ .GroupLabels.alertname }}'
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#dev-alerts'
+        title: '💻 开发告警'
+        color: 'good'
+
+  # 数据库团队告警接收者
+  - name: 'database-alerts'
+    email_configs:
+      - to: '${DB_EMAIL_TO:dba@historical-text.com}'
+        subject: '[🗄️ DATABASE] {{ .GroupLabels.alertname }}'
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#database-alerts'
+        title: '🗄️ 数据库告警'
+        color: '#9932cc'
+
+  # 平台团队告警接收者
+  - name: 'platform-alerts'
+    email_configs:
+      - to: '${PLATFORM_EMAIL_TO:platform@historical-text.com}'
+        subject: '[⚙️ PLATFORM] {{ .GroupLabels.alertname }}'
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#platform-alerts'
+        title: '⚙️ 平台告警'
+        color: '#2eb886'
+
+  # 信息级告警接收者
+  - name: 'info-alerts'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#info-alerts'
+        title: 'ℹ️ 信息告警'
+        color: '#36a64f'
+        send_resolved: true
+
+# 时间窗口配置
+time_intervals:
+  # 工作时间（周一到周五 9:00-18:00）
+  - name: working_hours
+    time_intervals:
+      - times:
+        - start_time: '09:00'
+          end_time: '18:00'
+        weekdays: ['monday:friday']
+        location: 'Asia/Shanghai'
+  
+  # 非工作时间
+  - name: off_hours
+    time_intervals:
+      - times:
+        - start_time: '18:00'
+          end_time: '09:00'
+        weekdays: ['monday:friday']
+        location: 'Asia/Shanghai'
+      - weekdays: ['saturday', 'sunday']
+        location: 'Asia/Shanghai'
+  
+  # 维护窗口（每周日 02:00-04:00）
+  - name: maintenance_window
+    time_intervals:
+      - times:
+        - start_time: '02:00'
+          end_time: '04:00'
+        weekdays: ['sunday']
+        location: 'Asia/Shanghai'

@@ -1,0 +1,357 @@
+{{/* AlertManager 自定义模板 */}}
+{{/* 历史文本项目告警通知模板 */}}
+
+{{/* 定义颜色函数 */}}
+{{ define "__alert_severity_color" -}}
+{{- if eq .Labels.severity "critical" -}}
+#d73527
+{{- else if eq .Labels.severity "warning" -}}
+#ff9900
+{{- else if eq .Labels.severity "info" -}}
+#36a64f
+{{- else -}}
+#808080
+{{- end -}}
+{{- end }}
+
+{{/* 定义emoji函数 */}}
+{{ define "__alert_severity_emoji" -}}
+{{- if eq .Labels.severity "critical" -}}
+🚨
+{{- else if eq .Labels.severity "warning" -}}
+⚠️
+{{- else if eq .Labels.severity "info" -}}
+ℹ️
+{{- else -}}
+📢
+{{- end -}}
+{{- end }}
+
+{{/* 定义服务icon函数 */}}
+{{ define "__service_icon" -}}
+{{- if eq .Labels.component "infrastructure" -}}
+🖥️
+{{- else if eq .Labels.component "database" -}}
+🗄️
+{{- else if eq .Labels.component "authentication" -}}
+🔐
+{{- else if eq .Labels.component "data-collection" -}}
+📊
+{{- else if eq .Labels.component "text-processing" -}}
+📝
+{{- else if eq .Labels.component "file-scanning" -}}
+🔍
+{{- else if eq .Labels.component "message-queue" -}}
+📬
+{{- else -}}
+⚙️
+{{- end -}}
+{{- end }}
+
+{{/* Slack通用模板 */}}
+{{ define "slack.title" }}
+{{ template "__alert_severity_emoji" . }} {{ .Status | toUpper }} {{ if eq .Status "firing" }}{{ .Alerts | len }}{{ else }}告警已恢复{{ end }}
+{{- end }}
+
+{{ define "slack.text" }}
+{{ range .Alerts }}
+{{ template "__service_icon" . }} *服务*: {{ .Labels.job | default "系统" }}
+*告警*: {{ .Labels.alertname }}
+{{ if .Labels.instance }}*实例*: {{ .Labels.instance }}{{ end }}
+*描述*: {{ .Annotations.description | default .Annotations.summary }}
+{{ if .Labels.severity }}*级别*: {{ .Labels.severity | upper }}{{ end }}
+*时间*: {{ if eq .Status "firing" }}{{ .StartsAt.Format "2006-01-02 15:04:05" }}{{ else }}{{ .EndsAt.Format "2006-01-02 15:04:05" }}{{ end }}
+{{ if .Annotations.runbook_url }}*处理手册*: {{ .Annotations.runbook_url }}{{ end }}
+{{ if .Annotations.dashboard_url }}*仪表板*: {{ .Annotations.dashboard_url }}{{ end }}
+
+{{ end }}
+{{- end }}
+
+{{/* 邮件主题模板 */}}
+{{ define "email.subject" }}
+[{{ .GroupLabels.environment | upper | default "PROD" }}] {{ template "__alert_severity_emoji" (index .Alerts 0) }} {{ .GroupLabels.alertname }} - {{ .GroupLabels.job | default "系统" }}
+{{- end }}
+
+{{/* 邮件HTML模板 */}}
+{{ define "email.html" }}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>历史文本项目告警通知</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', 'SimHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .status-firing {
+            background-color: #d73527;
+            color: white;
+        }
+        .status-resolved {
+            background-color: #36a64f;
+            color: white;
+        }
+        .content {
+            padding: 20px;
+        }
+        .alert-group {
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .alert-header {
+            padding: 15px;
+            font-weight: bold;
+            font-size: 16px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .alert-critical {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .alert-warning {
+            background-color: #fff8e1;
+            color: #ef6c00;
+        }
+        .alert-info {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+        }
+        .alert-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+        .alert-details {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #555;
+            width: 80px;
+        }
+        .detail-value {
+            color: #333;
+        }
+        .actions {
+            margin-top: 15px;
+        }
+        .action-link {
+            display: inline-block;
+            padding: 8px 15px;
+            margin-right: 10px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .action-link:hover {
+            background-color: #0056b3;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 15px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+        .metrics-summary {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .metric-item {
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ template "__service_icon" (index .Alerts 0) }} 历史文本项目告警通知</h1>
+            <div class="status-badge {{ if eq .Status "firing" }}status-firing{{ else }}status-resolved{{ end }}">
+                {{ if eq .Status "firing" }}{{ .Alerts | len }} 个告警触发{{ else }}告警已恢复{{ end }}
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- 告警摘要 -->
+            <div class="metrics-summary">
+                <h3>📊 告警摘要</h3>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-value">{{ .Alerts | len }}</div>
+                        <div class="metric-label">总告警数</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">
+                            {{ $critical := 0 }}{{ range .Alerts }}{{ if eq .Labels.severity "critical" }}{{ $critical = add $critical 1 }}{{ end }}{{ end }}{{ $critical }}
+                        </div>
+                        <div class="metric-label">严重告警</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">
+                            {{ $warning := 0 }}{{ range .Alerts }}{{ if eq .Labels.severity "warning" }}{{ $warning = add $warning 1 }}{{ end }}{{ end }}{{ $warning }}
+                        </div>
+                        <div class="metric-label">警告告警</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">{{ .GroupLabels.job | default "多个服务" }}</div>
+                        <div class="metric-label">受影响服务</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 告警详情 -->
+            {{ range $index, $alert := .Alerts }}
+            <div class="alert-group">
+                <div class="alert-header alert-{{ .Labels.severity | default "info" }}">
+                    {{ template "__alert_severity_emoji" . }} {{ .Labels.alertname }} 
+                    {{ if .Labels.job }}({{ .Labels.job }}){{ end }}
+                </div>
+                <div class="alert-item">
+                    <div class="alert-details">
+                        {{ if .Labels.service }}<div class="detail-label">服务:</div><div class="detail-value">{{ .Labels.service }}</div>{{ end }}
+                        {{ if .Labels.instance }}<div class="detail-label">实例:</div><div class="detail-value">{{ .Labels.instance }}</div>{{ end }}
+                        {{ if .Labels.component }}<div class="detail-label">组件:</div><div class="detail-value">{{ .Labels.component }}</div>{{ end }}
+                        <div class="detail-label">级别:</div><div class="detail-value" style="color: {{ template "__alert_severity_color" . }}; font-weight: bold;">{{ .Labels.severity | upper | default "INFO" }}</div>
+                        <div class="detail-label">开始时间:</div><div class="detail-value">{{ .StartsAt.Format "2006-01-02 15:04:05" }}</div>
+                        {{ if ne .Status "firing" }}<div class="detail-label">结束时间:</div><div class="detail-value">{{ .EndsAt.Format "2006-01-02 15:04:05" }}</div>{{ end }}
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <strong>描述:</strong> {{ .Annotations.description | default .Annotations.summary }}
+                    </div>
+                    
+                    {{ if .Annotations.value }}
+                    <div style="margin-bottom: 10px;">
+                        <strong>当前值:</strong> <code>{{ .Annotations.value }}</code>
+                    </div>
+                    {{ end }}
+                    
+                    <div class="actions">
+                        {{ if .Labels.runbook_url }}
+                        <a href="{{ .Labels.runbook_url }}" class="action-link">📖 查看处理手册</a>
+                        {{ end }}
+                        {{ if .Labels.dashboard_url }}
+                        <a href="{{ .Labels.dashboard_url }}" class="action-link">📊 查看仪表板</a>
+                        {{ end }}
+                        {{ if .GeneratorURL }}
+                        <a href="{{ .GeneratorURL }}" class="action-link">🔗 查看告警源</a>
+                        {{ end }}
+                    </div>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+        
+        <div class="footer">
+            <p>此邮件由历史文本项目监控系统自动发送 | 如有问题请联系运维团队</p>
+            <p>发送时间: {{ .Status | title }} at {{ now.Format "2006-01-02 15:04:05" }}</p>
+        </div>
+    </div>
+</body>
+</html>
+{{- end }}
+
+{{/* 邮件纯文本模板 */}}
+{{ define "email.text" }}
+历史文本项目告警通知
+===================
+
+告警状态: {{ .Status | title }}
+告警组: {{ .GroupLabels.alertname }}
+{{ if .GroupLabels.job }}服务: {{ .GroupLabels.job }}{{ end }}
+告警数量: {{ .Alerts | len }}
+
+{{ range .Alerts }}
+---
+{{ template "__alert_severity_emoji" . }} 告警: {{ .Labels.alertname }}
+{{ if .Labels.job }}服务: {{ .Labels.job }}{{ end }}
+{{ if .Labels.instance }}实例: {{ .Labels.instance }}{{ end }}
+{{ if .Labels.component }}组件: {{ .Labels.component }}{{ end }}
+级别: {{ .Labels.severity | upper | default "INFO" }}
+描述: {{ .Annotations.description | default .Annotations.summary }}
+{{ if .Annotations.value }}当前值: {{ .Annotations.value }}{{ end }}
+开始时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+{{ if ne .Status "firing" }}结束时间: {{ .EndsAt.Format "2006-01-02 15:04:05" }}{{ end }}
+{{ if .Labels.runbook_url }}处理手册: {{ .Labels.runbook_url }}{{ end }}
+{{ if .Labels.dashboard_url }}仪表板: {{ .Labels.dashboard_url }}{{ end }}
+
+{{ end }}
+
+此消息由历史文本项目监控系统自动发送
+发送时间: {{ now.Format "2006-01-02 15:04:05" }}
+{{- end }}
+
+{{/* 微信/企业微信模板 */}}
+{{ define "wechat.text" }}
+{{ template "__alert_severity_emoji" (index .Alerts 0) }} 告警通知
+
+{{ if eq .Status "firing" }}🔴 {{ .Alerts | len }}个告警触发{{ else }}🟢 告警已恢复{{ end }}
+
+{{ range .Alerts }}
+📋 告警: {{ .Labels.alertname }}
+🏷️ 服务: {{ .Labels.job | default "系统" }}
+{{ if .Labels.instance }}🖥️ 实例: {{ .Labels.instance }}{{ end }}
+⚠️ 级别: {{ .Labels.severity | upper }}
+📝 描述: {{ .Annotations.description }}
+⏰ 时间: {{ .StartsAt.Format "01-02 15:04" }}
+{{ if .Labels.runbook_url }}📖 手册: {{ .Labels.runbook_url }}{{ end }}
+
+{{ end }}
+{{- end }}

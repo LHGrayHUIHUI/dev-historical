@@ -1,0 +1,256 @@
+# 历史文本项目 - 集成测试环境
+# 简化的docker-compose配置用于验证微服务集成
+
+services:
+  # PostgreSQL - 主数据存储
+  postgres:
+    image: postgres:15-alpine
+    container_name: integration-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: historical_text_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: testpass123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    networks:
+      - test_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d historical_text_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - 缓存和会话存储
+  redis:
+    image: redis:7-alpine
+    container_name: integration-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_test_data:/data
+    networks:
+      - test_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # RabbitMQ - 消息队列
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: integration-rabbitmq
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: testuser
+      RABBITMQ_DEFAULT_PASS: testpass123
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - rabbitmq_test_data:/var/lib/rabbitmq
+    networks:
+      - test_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MinIO - 对象存储服务
+  minio:
+    image: minio/minio:latest
+    container_name: integration-minio
+    ports:
+      - "9001:9000"
+      - "9002:9001"
+    environment:
+      MINIO_ROOT_USER: testuser
+      MINIO_ROOT_PASSWORD: testpass123
+    volumes:
+      - minio_test_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - test_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # MongoDB - 非关系型数据库
+  mongo:
+    image: mongo:7.0-jammy
+    container_name: integration-mongodb
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: testuser
+      MONGO_INITDB_ROOT_PASSWORD: testpass123
+      MONGO_INITDB_DATABASE: historical_text_test
+    volumes:
+      - mongodb_test_data:/data/db
+    networks:
+      - test_network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 数据源服务
+  data-source-service:
+    image: python:3.11-slim
+    container_name: integration-data-source
+    ports:
+      - "8001:8000"
+    environment:
+      - SERVICE_ENVIRONMENT=testing
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=8000
+      - DEBUG=true
+      
+      # 数据库配置
+      - DATABASE_URL=postgresql+asyncpg://postgres:testpass123@postgres:5432/historical_text_test
+      - MONGODB_URL=mongodb://mongo:27017/historical_text_test
+      - REDIS_URL=redis://redis:6379/0
+      - RABBITMQ_URL=amqp://testuser:testpass123@rabbitmq:5672/
+      
+      # 安全配置
+      - SECRET_KEY=integration-test-secret-key
+      - JWT_SECRET_KEY=integration-test-jwt-secret
+      - JWT_ALGORITHM=HS256
+    volumes:
+      - ./services/data-source:/app
+      - ./services/data-source/logs:/app/logs
+    working_dir: /app
+    command: >
+      sh -c "
+        apt-get update && apt-get install -y gcc curl &&
+        pip install --no-cache-dir -r requirements.txt &&
+        python -m src.main
+      "
+    networks:
+      - test_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # 数据采集服务
+  data-collection-service:
+    image: python:3.11-slim
+    container_name: integration-data-collection
+    ports:
+      - "8003:8002"
+    environment:
+      - SERVICE_ENVIRONMENT=testing
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=8002
+      - DEBUG=true
+      
+      # 数据库配置
+      - DATABASE_URL=postgresql+asyncpg://postgres:testpass123@postgres:5432/historical_text_test
+      - REDIS_URL=redis://redis:6379/0
+      - RABBITMQ_URL=amqp://testuser:testpass123@rabbitmq:5672/
+      
+      # MinIO配置
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=testuser
+      - MINIO_SECRET_KEY=testpass123
+      - MINIO_BUCKET_NAME=historical-texts-test
+      - MINIO_SECURE=false
+      
+      # 安全配置
+      - SECRET_KEY=integration-test-secret-key
+      - JWT_SECRET_KEY=integration-test-jwt-secret
+      - JWT_ALGORITHM=HS256
+      
+      # 功能配置
+      - MAX_FILE_SIZE=10485760
+      - MAX_BATCH_SIZE=10
+      - VIRUS_SCAN_ENABLED=false
+      - OCR_ENABLED=false
+      - METRICS_ENABLED=true
+    volumes:
+      - ./services/data-collection:/app
+      - ./services/data-collection/logs:/app/logs
+      - ./services/data-collection/temp:/app/temp
+    working_dir: /app
+    command: >
+      sh -c "
+        apt-get update && apt-get install -y gcc g++ curl &&
+        pip install --no-cache-dir -r requirements.txt &&
+        python -m src.main
+      "
+    networks:
+      - test_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # 集成测试容器
+  integration-tests:
+    image: python:3.11-slim
+    container_name: integration-tests
+    volumes:
+      - ./tests:/tests
+      - ./scripts:/scripts
+    working_dir: /tests
+    command: >
+      sh -c "
+        apt-get update && apt-get install -y curl &&
+        pip install requests pytest httpx &&
+        echo '等待服务启动...' &&
+        sleep 60 &&
+        python integration_test_runner.py
+      "
+    networks:
+      - test_network
+    depends_on:
+      - data-source-service
+      - data-collection-service
+    profiles:
+      - testing
+
+volumes:
+  postgres_test_data:
+  redis_test_data:
+  rabbitmq_test_data:
+  minio_test_data:
+  mongodb_test_data:
+
+networks:
+  test_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

@@ -1,0 +1,196 @@
+# Kong API网关声明式配置
+# 历史文本项目微服务架构
+_format_version: "3.0"
+_transform: true
+
+# 服务定义
+services:
+  # 用户认证服务
+  - name: auth-service
+    url: http://auth-service:8001
+    protocol: http
+    connect_timeout: 5000
+    write_timeout: 60000
+    read_timeout: 60000
+    retries: 3
+    tags: ["microservice", "auth"]
+    
+  # 文档处理服务  
+  - name: document-service
+    url: http://document-service:8002
+    protocol: http
+    connect_timeout: 5000
+    write_timeout: 60000
+    read_timeout: 60000
+    retries: 3
+    tags: ["microservice", "document"]
+    
+  # 文本处理服务
+  - name: text-service
+    url: http://text-service:8003
+    protocol: http
+    connect_timeout: 5000
+    write_timeout: 60000
+    read_timeout: 60000
+    retries: 3
+    tags: ["microservice", "text"]
+    
+  # AI模型服务
+  - name: ai-service
+    url: http://ai-service:8004
+    protocol: http
+    connect_timeout: 10000
+    write_timeout: 120000
+    read_timeout: 120000
+    retries: 2
+    tags: ["microservice", "ai"]
+    
+  # 内容发布服务
+  - name: publish-service
+    url: http://publish-service:8005
+    protocol: http
+    connect_timeout: 5000
+    write_timeout: 60000
+    read_timeout: 60000
+    retries: 3
+    tags: ["microservice", "publish"]
+
+# 路由定义
+routes:
+  # 认证服务路由
+  - name: auth-api
+    service: auth-service
+    paths: ["/api/v1/auth", "/api/v1/users"]
+    methods: ["GET", "POST", "PUT", "DELETE"]
+    strip_path: false
+    preserve_host: true
+    
+  # 文档服务路由
+  - name: document-api
+    service: document-service
+    paths: ["/api/v1/documents", "/api/v1/upload"]
+    methods: ["GET", "POST", "PUT", "DELETE"]
+    strip_path: false
+    preserve_host: true
+    
+  # 文本处理路由
+  - name: text-api
+    service: text-service
+    paths: ["/api/v1/text", "/api/v1/ocr"]
+    methods: ["GET", "POST", "PUT"]
+    strip_path: false
+    preserve_host: true
+    
+  # AI服务路由
+  - name: ai-api
+    service: ai-service
+    paths: ["/api/v1/ai", "/api/v1/models"]
+    methods: ["GET", "POST"]
+    strip_path: false
+    preserve_host: true
+    
+  # 发布服务路由
+  - name: publish-api
+    service: publish-service
+    paths: ["/api/v1/publish", "/api/v1/content"]
+    methods: ["GET", "POST", "PUT", "DELETE"]
+    strip_path: false
+    preserve_host: true
+
+# 插件配置
+plugins:
+  # 全局JWT认证插件
+  - name: jwt
+    config:
+      uri_param_names: ["token"]
+      cookie_names: ["jwt"]
+      header_names: ["authorization"]
+      claims_to_verify: ["exp", "iat"]
+      key_claim_name: "iss"
+      secret_is_base64: false
+      run_on_preflight: true
+    protocols: ["http", "https"]
+    
+  # 全局限流插件
+  - name: rate-limiting
+    config:
+      minute: 100
+      hour: 1000
+      day: 10000
+      policy: "redis"
+      redis_host: "redis"
+      redis_port: 6379
+      redis_database: 0
+      fault_tolerant: true
+      hide_client_headers: false
+    protocols: ["http", "https"]
+    
+  # 全局CORS插件
+  - name: cors
+    config:
+      origins: ["http://localhost:3000", "https://app.example.com"]
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+      headers: 
+        - "Accept"
+        - "Accept-Version" 
+        - "Content-Length"
+        - "Content-MD5"
+        - "Content-Type"
+        - "Date"
+        - "X-Auth-Token"
+        - "Authorization"
+      exposed_headers: ["X-Auth-Token"]
+      credentials: true
+      max_age: 3600
+    protocols: ["http", "https"]
+    
+  # 请求日志插件
+  - name: file-log
+    config:
+      path: "/var/log/kong/access.log"
+      reopen: true
+    protocols: ["http", "https"]
+    
+  # Prometheus监控插件
+  - name: prometheus
+    config:
+      per_consumer: true
+      status_code_metrics: true
+      latency_metrics: true
+      bandwidth_metrics: true
+      upstream_health_metrics: true
+    protocols: ["http", "https"]
+
+# 消费者定义
+consumers:
+  # 前端应用消费者
+  - username: "frontend-app"
+    custom_id: "frontend-app-001"
+    tags: ["frontend"]
+    
+  # 移动端应用消费者
+  - username: "mobile-app"
+    custom_id: "mobile-app-001"
+    tags: ["mobile"]
+    
+  # API客户端消费者
+  - username: "api-client"
+    custom_id: "api-client-001"
+    tags: ["api"]
+
+# JWT凭证配置 (开发环境示例)
+jwt_secrets:
+  - consumer: "frontend-app"
+    key: "frontend-app-key"
+    algorithm: "HS256"
+    secret: "your-256-bit-secret-for-frontend"
+    
+  - consumer: "mobile-app"
+    key: "mobile-app-key"
+    algorithm: "HS256"
+    secret: "your-256-bit-secret-for-mobile"
+    
+  - consumer: "api-client"
+    key: "api-client-key"
+    algorithm: "HS256"
+    secret: "your-256-bit-secret-for-api"

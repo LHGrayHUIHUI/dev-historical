@@ -1,0 +1,124 @@
+# 数据采集服务Docker镜像 - 优化版本
+# 减少构建时间和镜像大小的优化Dockerfile
+
+# 基础镜像选择：使用预构建的Python镜像，已包含常用依赖
+FROM python:3.11-slim as base
+
+# 构建参数
+ARG BUILD_DATE
+ARG GIT_COMMIT
+ARG VERSION=latest
+
+# 设置标签
+LABEL org.opencontainers.image.created=$BUILD_DATE \
+      org.opencontainers.image.version=$VERSION \
+      org.opencontainers.image.revision=$GIT_COMMIT \
+      org.opencontainers.image.title="Historical Text Data Collection Service" \
+      org.opencontainers.image.description="数据采集与存储微服务 - 优化版本" \
+      org.opencontainers.image.vendor="Historical Text Project"
+
+# 设置环境变量（提前设置以便被所有阶段使用）
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    POETRY_VENV_IN_PROJECT=1 \
+    SERVICE_HOST=0.0.0.0 \
+    SERVICE_PORT=8002
+
+# 构建阶段：优化依赖安装
+FROM base as dependencies
+
+# 安装系统依赖（合并命令减少层数）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    libpq-dev \
+    libmagic1 \
+    libmagic-dev \
+    curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制requirements文件（利用Docker缓存）
+COPY requirements.txt .
+
+# 创建虚拟环境并安装依赖
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --upgrade pip setuptools wheel && \
+    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# 生产运行阶段
+FROM base as production
+
+# 安装运行时系统依赖（最小化）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    libpq5 \
+    libmagic1 \
+    tesseract-ocr \
+    tesseract-ocr-chi-sim \
+    tesseract-ocr-eng \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# 从构建阶段复制虚拟环境
+COPY --from=dependencies /opt/venv /opt/venv
+
+# 更新PATH以使用虚拟环境
+ENV PATH="/opt/venv/bin:$PATH" \
+    PYTHONPATH=/app
+
+# 创建非root用户
+RUN groupadd -r app && useradd -r -g app -u 1001 app && \
+    mkdir -p /app/logs /app/data /app/temp && \
+    chown -R app:app /app
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制应用代码（使用.dockerignore优化）
+COPY --chown=app:app src/ ./src/
+COPY --chown=app:app alembic.ini .
+COPY --chown=app:app migrations/ ./migrations/
+
+# 切换到非root用户
+USER app
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:${SERVICE_PORT}/health || exit 1
+
+# 暴露端口
+EXPOSE ${SERVICE_PORT}
+
+# 启动命令
+CMD ["python", "-m", "src.main"]
+
+# 开发阶段（包含额外的开发工具）
+FROM production as development
+
+# 切换回root安装开发依赖
+USER root
+
+# 安装开发工具（可选，用于开发环境）
+RUN /opt/venv/bin/pip install --no-cache-dir \
+    pytest==7.4.3 \
+    pytest-asyncio==0.21.1 \
+    pytest-cov==4.1.0 \
+    black==23.11.0 \
+    isort==5.12.0 \
+    mypy==1.7.1
+
+# 复制测试和配置文件
+COPY --chown=app:app tests/ ./tests/
+COPY --chown=app:app .env.example .env
+
+# 切换回app用户
+USER app
+
+# 开发环境启动命令（支持热重载）
+CMD ["python", "-m", "src.main", "--reload"]

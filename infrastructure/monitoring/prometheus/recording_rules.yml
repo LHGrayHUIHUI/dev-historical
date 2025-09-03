@@ -1,0 +1,335 @@
+# Prometheus 记录规则配置
+# Historical Text Project - 性能优化记录规则
+
+groups:
+  # HTTP 指标记录规则
+  - name: http_recording_rules
+    interval: 30s
+    rules:
+      # HTTP请求速率（按服务）
+      - record: http_requests:rate5m
+        expr: |
+          sum(rate(http_requests_total[5m])) by (job, method, endpoint)
+      
+      # HTTP错误率（按服务）
+      - record: http_requests:error_rate5m
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (job, method, endpoint)
+            /
+            sum(rate(http_requests_total[5m])) by (job, method, endpoint)
+          )
+      
+      # HTTP响应时间95分位数（按服务）
+      - record: http_requests:latency_95p5m
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (job, method, endpoint, le)
+          )
+      
+      # HTTP响应时间50分位数（按服务）
+      - record: http_requests:latency_50p5m
+        expr: |
+          histogram_quantile(0.50,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (job, method, endpoint, le)
+          )
+      
+      # 服务可用性（按服务）
+      - record: service:availability_5m
+        expr: |
+          avg(up) by (job)
+
+  # 基础设施记录规则
+  - name: infrastructure_recording_rules
+    interval: 30s
+    rules:
+      # CPU使用率（按节点）
+      - record: node:cpu_usage_percent
+        expr: |
+          100 - (
+            avg by(instance) (
+              rate(node_cpu_seconds_total{mode="idle"}[5m])
+            ) * 100
+          )
+      
+      # 内存使用率（按节点）
+      - record: node:memory_usage_percent
+        expr: |
+          (
+            1 - (
+              node_memory_MemAvailable_bytes / 
+              node_memory_MemTotal_bytes
+            )
+          ) * 100
+      
+      # 磁盘使用率（按挂载点）
+      - record: node:disk_usage_percent
+        expr: |
+          (
+            1 - (
+              node_filesystem_avail_bytes{fstype!="tmpfs"} / 
+              node_filesystem_size_bytes{fstype!="tmpfs"}
+            )
+          ) * 100
+      
+      # 网络接收速率（按节点）
+      - record: node:network_receive_bytes_rate
+        expr: |
+          sum(rate(node_network_receive_bytes_total[5m])) by (instance)
+      
+      # 网络发送速率（按节点）
+      - record: node:network_transmit_bytes_rate
+        expr: |
+          sum(rate(node_network_transmit_bytes_total[5m])) by (instance)
+      
+      # 磁盘IO使用率（按设备）
+      - record: node:disk_io_utilization
+        expr: |
+          rate(node_disk_io_time_seconds_total[5m]) * 100
+
+  # 业务指标记录规则
+  - name: business_recording_rules
+    interval: 60s
+    rules:
+      # 文档处理速率（按类型）
+      - record: business:document_processing_rate5m
+        expr: |
+          sum(rate(document_processing_total[5m])) by (type, status)
+      
+      # 文档处理成功率（按类型）
+      - record: business:document_processing_success_rate5m
+        expr: |
+          (
+            sum(rate(document_processing_total{status="success"}[5m])) by (type)
+            /
+            sum(rate(document_processing_total[5m])) by (type)
+          )
+      
+      # 平均文档处理时间（按类型）
+      - record: business:document_processing_duration_mean5m
+        expr: |
+          (
+            sum(rate(document_processing_duration_seconds_sum[5m])) by (type)
+            /
+            sum(rate(document_processing_duration_seconds_count[5m])) by (type)
+          )
+      
+      # 文件上传速率
+      - record: business:file_upload_rate5m
+        expr: |
+          sum(rate(file_uploads_total[5m])) by (status, file_type)
+      
+      # 文件上传成功率
+      - record: business:file_upload_success_rate5m
+        expr: |
+          (
+            sum(rate(file_uploads_total{status="success"}[5m]))
+            /
+            sum(rate(file_uploads_total[5m]))
+          )
+      
+      # 活跃用户数（1小时移动平均）
+      - record: business:active_users_1h
+        expr: |
+          avg_over_time(active_users_total[1h])
+      
+      # 队列积压情况
+      - record: business:queue_backlog
+        expr: |
+          sum(queue_size) by (queue_name)
+
+  # 数据库记录规则
+  - name: database_recording_rules
+    interval: 30s
+    rules:
+      # PostgreSQL连接使用率
+      - record: postgres:connection_usage_percent
+        expr: |
+          (
+            pg_stat_database_numbackends / 
+            pg_settings_max_connections
+          ) * 100
+      
+      # PostgreSQL查询速率
+      - record: postgres:query_rate5m
+        expr: |
+          sum(rate(pg_stat_database_xact_commit[5m]) + rate(pg_stat_database_xact_rollback[5m])) by (datname)
+      
+      # PostgreSQL缓存命中率
+      - record: postgres:cache_hit_rate
+        expr: |
+          (
+            pg_stat_database_blks_hit / 
+            (pg_stat_database_blks_hit + pg_stat_database_blks_read)
+          ) * 100
+      
+      # Redis内存使用率
+      - record: redis:memory_usage_percent
+        expr: |
+          (redis_memory_used_bytes / redis_config_maxmemory) * 100
+      
+      # Redis命令执行速率
+      - record: redis:commands_rate5m
+        expr: |
+          rate(redis_commands_processed_total[5m])
+      
+      # Redis缓存命中率
+      - record: redis:cache_hit_rate
+        expr: |
+          (
+            rate(redis_keyspace_hits_total[5m]) /
+            (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))
+          ) * 100
+      
+      # MongoDB连接使用率
+      - record: mongodb:connection_usage_percent
+        expr: |
+          (
+            mongodb_connections{state="current"} / 
+            mongodb_connections{state="available"}
+          ) * 100
+      
+      # MongoDB操作速率
+      - record: mongodb:operations_rate5m
+        expr: |
+          sum(rate(mongodb_op_counters_total[5m])) by (type)
+
+  # 容器资源使用记录规则
+  - name: container_recording_rules
+    interval: 30s
+    rules:
+      # 容器CPU使用率
+      - record: container:cpu_usage_percent
+        expr: |
+          (
+            rate(container_cpu_usage_seconds_total{name!=""}[5m]) * 100
+          )
+      
+      # 容器内存使用率
+      - record: container:memory_usage_percent
+        expr: |
+          (
+            container_memory_working_set_bytes{name!=""} / 
+            container_spec_memory_limit_bytes{name!=""}
+          ) * 100
+      
+      # 容器网络接收速率
+      - record: container:network_receive_bytes_rate
+        expr: |
+          sum(rate(container_network_receive_bytes_total{name!=""}[5m])) by (name, pod, namespace)
+      
+      # 容器网络发送速率
+      - record: container:network_transmit_bytes_rate
+        expr: |
+          sum(rate(container_network_transmit_bytes_total{name!=""}[5m])) by (name, pod, namespace)
+      
+      # 容器文件系统使用率
+      - record: container:filesystem_usage_percent
+        expr: |
+          (
+            container_fs_usage_bytes{name!=""} / 
+            container_fs_limit_bytes{name!=""}
+          ) * 100
+
+  # 集群级别聚合规则
+  - name: cluster_recording_rules
+    interval: 60s
+    rules:
+      # 集群CPU使用率
+      - record: cluster:cpu_usage_percent
+        expr: |
+          avg(node:cpu_usage_percent)
+      
+      # 集群内存使用率
+      - record: cluster:memory_usage_percent
+        expr: |
+          (
+            sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) /
+            sum(node_memory_MemTotal_bytes)
+          ) * 100
+      
+      # 集群磁盘使用率
+      - record: cluster:disk_usage_percent
+        expr: |
+          (
+            sum(node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_avail_bytes{fstype!="tmpfs"}) /
+            sum(node_filesystem_size_bytes{fstype!="tmpfs"})
+          ) * 100
+      
+      # 集群Pod数量
+      - record: cluster:pods_total
+        expr: |
+          count(kube_pod_info)
+      
+      # 集群节点数量
+      - record: cluster:nodes_total
+        expr: |
+          count(kube_node_info)
+      
+      # 集群服务可用性
+      - record: cluster:service_availability
+        expr: |
+          (
+            count(up{job="historical-text-services"} == 1) /
+            count(up{job="historical-text-services"})
+          ) * 100
+
+  # SLA计算规则
+  - name: sla_recording_rules
+    interval: 300s  # 5分钟计算一次
+    rules:
+      # API可用性SLA（99.9%目标）
+      - record: sla:api_availability_24h
+        expr: |
+          (
+            (
+              sum(up{job="historical-text-services"} == 1) * 300 / 
+              sum(up{job="historical-text-services"}) * 300
+            ) 
+            over_time[24h]
+          )
+      
+      # API响应时间SLA（95%请求<500ms）
+      - record: sla:api_latency_24h
+        expr: |
+          (
+            sum(rate(http_request_duration_seconds_bucket{le="0.5"}[5m])) /
+            sum(rate(http_request_duration_seconds_count[5m]))
+          ) * 100
+      
+      # 错误率SLA（<1%）
+      - record: sla:error_rate_24h
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) /
+            sum(rate(http_requests_total[5m]))
+          ) * 100
+
+  # 容量规划记录规则
+  - name: capacity_planning_rules
+    interval: 3600s  # 1小时计算一次
+    rules:
+      # CPU使用趋势（7天移动平均）
+      - record: capacity:cpu_usage_trend_7d
+        expr: |
+          avg_over_time(node:cpu_usage_percent[7d])
+      
+      # 内存使用趋势（7天移动平均）
+      - record: capacity:memory_usage_trend_7d
+        expr: |
+          avg_over_time(node:memory_usage_percent[7d])
+      
+      # 磁盘增长率（每小时）
+      - record: capacity:disk_growth_rate_1h
+        expr: |
+          increase(node_filesystem_size_bytes - node_filesystem_avail_bytes[1h])
+      
+      # 请求量增长趋势（7天移动平均）
+      - record: capacity:request_growth_trend_7d
+        expr: |
+          avg_over_time(http_requests:rate5m[7d])
+      
+      # 用户增长趋势（7天移动平均）
+      - record: capacity:user_growth_trend_7d
+        expr: |
+          avg_over_time(business:active_users_1h[7d])

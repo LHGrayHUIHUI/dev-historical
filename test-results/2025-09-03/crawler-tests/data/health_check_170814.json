@@ -1,0 +1,38 @@
+{
+  "success": true,
+  "data": {
+    "status": "degraded",
+    "timestamp": "2025-09-03T09:08:14.496626",
+    "service": {
+      "name": "data-source-service",
+      "version": "1.0.0",
+      "environment": "testing"
+    },
+    "components": {
+      "database": {
+        "mongodb": {
+          "status": "connected",
+          "latency": 1.06
+        },
+        "redis": {
+          "status": "connected",
+          "latency": 0.46
+        }
+      },
+      "crawler": {
+        "total_tasks": 0,
+        "running_tasks": 0,
+        "success_rate": 0
+      },
+      "proxy": {
+        "total_proxies": 90,
+        "active_proxies": 0,
+        "success_rate": 0.0
+      }
+    },
+    "issues": [
+      "没有可用代理"
+    ]
+  },
+  "message": "服务状态: degraded"
+}

@@ -1,0 +1,324 @@
+# Prometheus 告警规则配置
+# Historical Text Project - 监控告警规则
+
+groups:
+  # 应用服务告警组
+  - name: application_alerts
+    rules:
+      # 服务不可用告警
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: "{{ $labels.job }}"
+          team: "platform"
+        annotations:
+          summary: "服务 {{ $labels.job }} 不可用"
+          description: "服务 {{ $labels.job }} 在实例 {{ $labels.instance }} 上已经停止响应超过1分钟。\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+          runbook_url: "https://wiki.company.com/runbooks/service-down"
+          dashboard_url: "http://grafana:3000/d/service-overview"
+
+      # 高错误率告警
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(http_requests_total{status=~"5.."}[5m]) / 
+            rate(http_requests_total[5m])
+          ) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: "{{ $labels.job }}"
+          team: "development"
+        annotations:
+          summary: "服务 {{ $labels.job }} 错误率过高"
+          description: "服务 {{ $labels.job }} 在过去5分钟内的错误率超过10%，当前错误率为 {{ $value | humanizePercentage }}。"
+          runbook_url: "https://wiki.company.com/runbooks/high-error-rate"
+
+      # 高响应时间告警
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95, 
+            rate(http_request_duration_seconds_bucket[5m])
+          ) > 1
+        for: 3m
+        labels:
+          severity: warning
+          service: "{{ $labels.job }}"
+          team: "development"
+        annotations:
+          summary: "服务 {{ $labels.job }} 响应时间过长"
+          description: "服务 {{ $labels.job }} 的95%分位响应时间超过1秒，当前为 {{ $value | humanizeDuration }}。"
+          runbook_url: "https://wiki.company.com/runbooks/high-response-time"
+
+      # 高并发连接数告警
+      - alert: HighConcurrentConnections
+        expr: active_connections > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: "{{ $labels.job }}"
+          team: "platform"
+        annotations:
+          summary: "服务 {{ $labels.job }} 并发连接数过高"
+          description: "服务 {{ $labels.job }} 当前活跃连接数为 {{ $value }}，超过阈值1000。"
+
+      # 请求量异常告警
+      - alert: RequestVolumeAnomaly
+        expr: |
+          (
+            rate(http_requests_total[5m]) > 
+            (
+              avg_over_time(rate(http_requests_total[5m])[1h:5m]) + 
+              2 * stddev_over_time(rate(http_requests_total[5m])[1h:5m])
+            )
+          ) or
+          (
+            rate(http_requests_total[5m]) < 
+            (
+              avg_over_time(rate(http_requests_total[5m])[1h:5m]) - 
+              2 * stddev_over_time(rate(http_requests_total[5m])[1h:5m])
+            )
+          )
+        for: 10m
+        labels:
+          severity: info
+          service: "{{ $labels.job }}"
+          team: "development"
+        annotations:
+          summary: "服务 {{ $labels.job }} 请求量异常"
+          description: "服务 {{ $labels.job }} 的请求量偏离正常范围，当前为 {{ $value }} req/s。"
+
+  # 基础设施告警组
+  - name: infrastructure_alerts
+    rules:
+      # CPU使用率告警
+      - alert: HighCPUUsage
+        expr: |
+          100 - (
+            avg by(instance) (
+              rate(node_cpu_seconds_total{mode="idle"}[5m])
+            ) * 100
+          ) > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: "platform"
+          component: "infrastructure"
+        annotations:
+          summary: "服务器 {{ $labels.instance }} CPU使用率过高"
+          description: "服务器 {{ $labels.instance }} CPU使用率为 {{ $value | printf \"%.2f\" }}%，超过80%阈值。"
+          runbook_url: "https://wiki.company.com/runbooks/high-cpu"
+
+      # 内存使用率告警
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            1 - (
+              node_memory_MemAvailable_bytes / 
+              node_memory_MemTotal_bytes
+            )
+          ) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: "platform"
+          component: "infrastructure"
+        annotations:
+          summary: "服务器 {{ $labels.instance }} 内存使用率过高"
+          description: "服务器 {{ $labels.instance }} 内存使用率为 {{ $value | printf \"%.2f\" }}%，超过85%阈值。"
+          runbook_url: "https://wiki.company.com/runbooks/high-memory"
+
+      # 磁盘空间告警
+      - alert: LowDiskSpace
+        expr: |
+          (
+            1 - (
+              node_filesystem_avail_bytes{fstype!="tmpfs"} / 
+              node_filesystem_size_bytes{fstype!="tmpfs"}
+            )
+          ) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          team: "platform"
+          component: "infrastructure"
+        annotations:
+          summary: "服务器 {{ $labels.instance }} 磁盘空间不足"
+          description: "服务器 {{ $labels.instance }} 挂载点 {{ $labels.mountpoint }} 磁盘使用率为 {{ $value | printf \"%.2f\" }}%，超过90%阈值。"
+          runbook_url: "https://wiki.company.com/runbooks/low-disk-space"
+
+      # 磁盘IO使用率告警
+      - alert: HighDiskIOUsage
+        expr: |
+          (
+            rate(node_disk_io_time_seconds_total[5m]) * 100
+          ) > 80
+        for: 10m
+        labels:
+          severity: warning
+          team: "platform"
+          component: "infrastructure"
+        annotations:
+          summary: "服务器 {{ $labels.instance }} 磁盘IO使用率过高"
+          description: "服务器 {{ $labels.instance }} 设备 {{ $labels.device }} 磁盘IO使用率为 {{ $value | printf \"%.2f\" }}%。"
+
+      # 网络连接数告警
+      - alert: HighNetworkConnections
+        expr: |
+          node_netstat_Tcp_CurrEstab > 5000
+        for: 5m
+        labels:
+          severity: warning
+          team: "platform"
+          component: "infrastructure"
+        annotations:
+          summary: "服务器 {{ $labels.instance }} 网络连接数过高"
+          description: "服务器 {{ $labels.instance }} 当前TCP连接数为 {{ $value }}，超过5000阈值。"
+
+  # 数据库告警组
+  - name: database_alerts
+    rules:
+      # PostgreSQL 连接数告警
+      - alert: PostgreSQLHighConnections
+        expr: |
+          pg_stat_database_numbackends / pg_settings_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: "database"
+          component: "postgresql"
+        annotations:
+          summary: "PostgreSQL 数据库连接数过高"
+          description: "PostgreSQL 数据库 {{ $labels.datname }} 连接数使用率为 {{ $value | printf \"%.2f\" }}%，超过80%阈值。"
+
+      # PostgreSQL 慢查询告警
+      - alert: PostgreSQLSlowQueries
+        expr: |
+          increase(pg_stat_database_tup_fetched[5m]) / 
+          increase(pg_stat_database_tup_returned[5m]) > 100
+        for: 10m
+        labels:
+          severity: info
+          team: "database"
+          component: "postgresql"
+        annotations:
+          summary: "PostgreSQL 存在慢查询"
+          description: "PostgreSQL 数据库 {{ $labels.datname }} 可能存在慢查询，查询效率较低。"
+
+      # Redis 内存使用告警
+      - alert: RedisHighMemoryUsage
+        expr: |
+          redis_memory_used_bytes / redis_config_maxmemory * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          team: "database"
+          component: "redis"
+        annotations:
+          summary: "Redis 内存使用率过高"
+          description: "Redis 实例 {{ $labels.instance }} 内存使用率为 {{ $value | printf \"%.2f\" }}%，超过90%阈值。"
+
+      # MongoDB 连接数告警
+      - alert: MongoDBHighConnections
+        expr: |
+          mongodb_connections{state="current"} / mongodb_connections{state="available"} * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: "database"
+          component: "mongodb"
+        annotations:
+          summary: "MongoDB 连接数过高"
+          description: "MongoDB 实例连接数使用率为 {{ $value | printf \"%.2f\" }}%，超过80%阈值。"
+
+  # 消息队列告警组  
+  - name: message_queue_alerts
+    rules:
+      # RabbitMQ 队列堆积告警
+      - alert: RabbitMQQueueBacklog
+        expr: |
+          rabbitmq_queue_messages > 1000
+        for: 5m
+        labels:
+          severity: warning
+          team: "platform"
+          component: "rabbitmq"
+        annotations:
+          summary: "RabbitMQ 队列 {{ $labels.queue }} 消息堆积"
+          description: "RabbitMQ 队列 {{ $labels.queue }} 当前消息数为 {{ $value }}，超过1000阈值。"
+
+      # RabbitMQ 连接数告警
+      - alert: RabbitMQHighConnections
+        expr: |
+          rabbitmq_connections > 100
+        for: 5m
+        labels:
+          severity: warning
+          team: "platform"
+          component: "rabbitmq"
+        annotations:
+          summary: "RabbitMQ 连接数过高"
+          description: "RabbitMQ 当前连接数为 {{ $value }}，超过100阈值。"
+
+  # 业务逻辑告警组
+  - name: business_logic_alerts
+    rules:
+      # 文件上传失败率告警
+      - alert: FileUploadFailureRate
+        expr: |
+          (
+            rate(file_uploads_total{status="error"}[5m]) /
+            rate(file_uploads_total[5m])
+          ) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          team: "development"
+          component: "data-collection"
+        annotations:
+          summary: "文件上传失败率过高"
+          description: "过去5分钟内文件上传失败率为 {{ $value | humanizePercentage }}，超过5%阈值。"
+
+      # 文本处理积压告警
+      - alert: TextProcessingBacklog
+        expr: |
+          sum(rate(text_processing_queue_size[5m])) > 50
+        for: 10m
+        labels:
+          severity: info
+          team: "development"
+          component: "text-processing"
+        annotations:
+          summary: "文本处理队列积压"
+          description: "文本处理队列当前积压任务数为 {{ $value }}。"
+
+  # 安全告警组
+  - name: security_alerts
+    rules:
+      # 异常登录尝试告警
+      - alert: UnusualLoginAttempts
+        expr: |
+          increase(auth_login_attempts_total{status="failed"}[1m]) > 10
+        for: 1m
+        labels:
+          severity: critical
+          team: "security"
+          component: "authentication"
+        annotations:
+          summary: "检测到异常登录尝试"
+          description: "过去1分钟内检测到 {{ $value }} 次失败登录尝试，可能存在安全威胁。"
+          
+      # 病毒检测告警
+      - alert: VirusDetected
+        expr: |
+          increase(file_virus_scan_total{result="infected"}[1m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          team: "security"
+          component: "file-scanning"
+        annotations:
+          summary: "检测到病毒文件"
+          description: "文件病毒扫描检测到 {{ $value }} 个感染文件，需要立即处理。"

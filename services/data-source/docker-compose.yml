@@ -1,0 +1,176 @@
+# 数据源服务Docker Compose配置
+# Docker Compose配置文件
+
+services:
+  data-source-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: data-source-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # 服务配置
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=8000
+      - SERVICE_ENVIRONMENT=production
+      - SERVICE_WORKERS=2
+      
+      # 数据库配置
+      - DB_MONGODB_URL=mongodb://mongo:27017
+      - DB_MONGODB_DB_NAME=historical_text_data
+      - DB_REDIS_URL=redis://redis:6379
+      
+      # 爬虫配置
+      - CRAWLER_MAX_CONCURRENT_CRAWLERS=10
+      - CRAWLER_ENABLE_PROXY=true
+      - CRAWLER_REQUEST_DELAY_MIN=2.0
+      - CRAWLER_REQUEST_DELAY_MAX=8.0
+      
+      # 代理配置
+      - PROXY_PROXY_POOL_SIZE=100
+      - PROXY_PROXY_CHECK_INTERVAL=600
+      
+      # 日志配置
+      - LOG_LEVEL=INFO
+      - LOG_FILE=/app/logs/data-source.log
+      
+      # 监控配置
+      - MONITOR_ENABLE_METRICS=true
+      - MONITOR_CONSUL_HOST=consul
+      - MONITOR_CONSUL_PORT=8500
+    
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    
+    networks:
+      - historical-text-network
+    
+    depends_on:
+      - mongo
+      - redis
+      - consul
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.data-source.rule=PathPrefix(`/api/v1/data-source`)"
+      - "traefik.http.services.data-source.loadbalancer.server.port=8000"
+      - "consul.service=data-source"
+      - "consul.tags=api,microservice,python"
+
+  # MongoDB数据库
+  mongo:
+    image: mongo:5.0
+    container_name: data-source-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=historical_text_data
+    volumes:
+      - mongo_data:/data/db
+      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - historical-text-network
+    command: mongod --auth
+
+  # Redis缓存
+  redis:
+    image: redis:7-alpine
+    container_name: data-source-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./docker/redis.conf:/etc/redis/redis.conf:ro
+    networks:
+      - historical-text-network
+    command: redis-server /etc/redis/redis.conf
+
+  # Consul服务发现
+  consul:
+    image: consul:1.15
+    container_name: data-source-consul
+    restart: unless-stopped
+    ports:
+      - "8500:8500"
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+    volumes:
+      - consul_data:/consul/data
+      - ./docker/consul.json:/consul/config/consul.json:ro
+    networks:
+      - historical-text-network
+    command: consul agent -config-dir=/consul/config
+
+  # RabbitMQ消息队列
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: data-source-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - historical-text-network
+
+  # Prometheus监控
+  prometheus:
+    image: prom/prometheus:v2.40.0
+    container_name: data-source-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - historical-text-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+
+  # Grafana可视化
+  grafana:
+    image: grafana/grafana:9.3.0
+    container_name: data-source-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - historical-text-network
+
+volumes:
+  mongo_data:
+  redis_data:
+  consul_data:
+  rabbitmq_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  historical-text-network:
+    driver: bridge

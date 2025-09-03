@@ -1,0 +1,2556 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "历史文本项目 - 数据源服务",
+    "description": "\n    ## 数据源服务 API\n    \n    提供多平台内容爬取、代理管理和内容处理功能的微服务。\n    \n    ### 主要功能\n    - 🕷️ **爬虫管理**: 支持今日头条、百家号、小红书等平台\n    - 📄 **内容管理**: 手动添加、批量导入、查询和更新内容\n    - 🌐 **代理管理**: 代理池管理、自动测试和轮换\n    - 📊 **监控统计**: 实时状态监控和数据统计\n    \n    ### 技术栈\n    - **框架**: FastAPI + Python 3.9+\n    - **数据库**: MongoDB + Redis\n    - **爬虫**: Scrapy + Selenium\n    - **代理**: 多供应商代理池\n    \n    ### 使用说明\n    1. 使用 `/crawlers/` 接口管理爬虫任务\n    2. 使用 `/content/` 接口管理内容数据\n    3. 使用 `/proxy/` 接口管理代理设置\n    4. 查看 `/health` 检查服务状态\n    ",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/crawlers/": {
+      "post": {
+        "tags": [
+          "爬虫管理"
+        ],
+        "summary": "创建爬虫任务",
+        "description": "创建新的爬虫任务\n\n- **platform**: 平台类型 (toutiao, baijiahao, xiaohongshu)\n- **keywords**: 关键词列表，用于内容抓取\n- **max_pages**: 最大抓取页数\n- **interval**: 请求间隔时间，避免过于频繁请求\n- **priority**: 任务优先级，影响执行顺序",
+        "operationId": "create_crawler_task_api_v1_crawlers__post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCrawlerRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Create Crawler Task Api V1 Crawlers  Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "爬虫管理"
+        ],
+        "summary": "获取所有任务",
+        "description": "获取所有爬虫任务列表，支持分页和过滤",
+        "operationId": "get_all_crawler_tasks_api_v1_crawlers__get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/CrawlerStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按状态过滤",
+              "title": "Status"
+            },
+            "description": "按状态过滤"
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ContentSource"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按平台过滤",
+              "title": "Platform"
+            },
+            "description": "按平台过滤"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "页码",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "页码"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "每页数量",
+              "default": 20,
+              "title": "Size"
+            },
+            "description": "每页数量"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get All Crawler Tasks Api V1 Crawlers  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/crawlers/{task_id}/start": {
+      "post": {
+        "tags": [
+          "爬虫管理"
+        ],
+        "summary": "启动爬虫任务",
+        "description": "启动指定的爬虫任务\n\n- **task_id**: 爬虫任务的唯一标识符",
+        "operationId": "start_crawler_task_api_v1_crawlers__task_id__start_post",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "任务ID",
+              "title": "Task Id"
+            },
+            "description": "任务ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Start Crawler Task Api V1 Crawlers  Task Id  Start Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/crawlers/{task_id}/stop": {
+      "post": {
+        "tags": [
+          "爬虫管理"
+        ],
+        "summary": "停止爬虫任务",
+        "description": "停止指定的爬虫任务",
+        "operationId": "stop_crawler_task_api_v1_crawlers__task_id__stop_post",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "任务ID",
+              "title": "Task Id"
+            },
+            "description": "任务ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Stop Crawler Task Api V1 Crawlers  Task Id  Stop Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/crawlers/{task_id}/pause": {
+      "post": {
+        "tags": [
+          "爬虫管理"
+        ],
+        "summary": "暂停爬虫任务",
+        "description": "暂停指定的爬虫任务",
+        "operationId": "pause_crawler_task_api_v1_crawlers__task_id__pause_post",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "任务ID",
+              "title": "Task Id"
+            },
+            "description": "任务ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Pause Crawler Task Api V1 Crawlers  Task Id  Pause Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/crawlers/{task_id}/resume": {
+      "post": {
+        "tags": [
+          "爬虫管理"
+        ],
+        "summary": "恢复爬虫任务",
+        "description": "恢复暂停的爬虫任务",
+        "operationId": "resume_crawler_task_api_v1_crawlers__task_id__resume_post",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "任务ID",
+              "title": "Task Id"
+            },
+            "description": "任务ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Resume Crawler Task Api V1 Crawlers  Task Id  Resume Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/crawlers/{task_id}/status": {
+      "get": {
+        "tags": [
+          "爬虫管理"
+        ],
+        "summary": "获取任务状态",
+        "description": "获取爬虫任务的详细状态信息",
+        "operationId": "get_crawler_task_status_api_v1_crawlers__task_id__status_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "任务ID",
+              "title": "Task Id"
+            },
+            "description": "任务ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Crawler Task Status Api V1 Crawlers  Task Id  Status Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/crawlers/running": {
+      "get": {
+        "tags": [
+          "爬虫管理"
+        ],
+        "summary": "获取运行中任务",
+        "description": "获取当前运行中的所有爬虫任务",
+        "operationId": "get_running_crawler_tasks_api_v1_crawlers_running_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Running Crawler Tasks Api V1 Crawlers Running Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/crawlers/statistics": {
+      "get": {
+        "tags": [
+          "爬虫管理"
+        ],
+        "summary": "获取统计信息",
+        "description": "获取爬虫系统的统计信息",
+        "operationId": "get_crawler_statistics_api_v1_crawlers_statistics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Crawler Statistics Api V1 Crawlers Statistics Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/crawlers/{task_id}": {
+      "delete": {
+        "tags": [
+          "爬虫管理"
+        ],
+        "summary": "删除任务",
+        "description": "删除指定的爬虫任务（仅限已完成或已停止的任务）",
+        "operationId": "delete_crawler_task_api_v1_crawlers__task_id__delete",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "任务ID",
+              "title": "Task Id"
+            },
+            "description": "任务ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Delete Crawler Task Api V1 Crawlers  Task Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/crawlers/stop-all": {
+      "post": {
+        "tags": [
+          "爬虫管理"
+        ],
+        "summary": "停止所有任务",
+        "description": "紧急停止所有正在运行的爬虫任务",
+        "operationId": "stop_all_crawler_tasks_api_v1_crawlers_stop_all_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Stop All Crawler Tasks Api V1 Crawlers Stop All Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/": {
+      "post": {
+        "tags": [
+          "内容管理"
+        ],
+        "summary": "添加单个内容",
+        "description": "手动添加单个内容\n\n- **title**: 内容标题\n- **content**: 内容正文\n- **source**: 内容来源\n- **author**: 作者（可选）\n- **source_url**: 原始链接（可选）\n- **publish_time**: 发布时间（可选）\n- **content_type**: 内容类型（默认为文章）",
+        "operationId": "create_content_api_v1_content__post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContentCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Create Content Api V1 Content  Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "内容管理"
+        ],
+        "summary": "获取内容列表",
+        "description": "获取内容列表，支持多种过滤和排序选项",
+        "operationId": "get_content_list_api_v1_content__get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ContentStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按状态过滤",
+              "title": "Status"
+            },
+            "description": "按状态过滤"
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ContentSource"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按来源过滤",
+              "title": "Source"
+            },
+            "description": "按来源过滤"
+          },
+          {
+            "name": "content_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ContentType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按类型过滤",
+              "title": "Content Type"
+            },
+            "description": "按类型过滤"
+          },
+          {
+            "name": "author",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按作者过滤",
+              "title": "Author"
+            },
+            "description": "按作者过滤"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按分类过滤",
+              "title": "Category"
+            },
+            "description": "按分类过滤"
+          },
+          {
+            "name": "keywords",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "关键词搜索（逗号分隔）",
+              "title": "Keywords"
+            },
+            "description": "关键词搜索（逗号分隔）"
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "开始日期 (YYYY-MM-DD)",
+              "title": "Start Date"
+            },
+            "description": "开始日期 (YYYY-MM-DD)"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "结束日期 (YYYY-MM-DD)",
+              "title": "End Date"
+            },
+            "description": "结束日期 (YYYY-MM-DD)"
+          },
+          {
+            "name": "min_quality_score",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 100.0,
+                  "minimum": 0.0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "最小质量分数",
+              "title": "Min Quality Score"
+            },
+            "description": "最小质量分数"
+          },
+          {
+            "name": "max_quality_score",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 100.0,
+                  "minimum": 0.0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "最大质量分数",
+              "title": "Max Quality Score"
+            },
+            "description": "最大质量分数"
+          },
+          {
+            "name": "min_view_count",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "最小浏览量",
+              "title": "Min View Count"
+            },
+            "description": "最小浏览量"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "页码",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "页码"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "每页数量",
+              "default": 20,
+              "title": "Size"
+            },
+            "description": "每页数量"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "排序字段",
+              "default": "created_at",
+              "title": "Sort By"
+            },
+            "description": "排序字段"
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(asc|desc)$",
+              "description": "排序顺序",
+              "default": "desc",
+              "title": "Sort Order"
+            },
+            "description": "排序顺序"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Content List Api V1 Content  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/batch": {
+      "post": {
+        "tags": [
+          "内容管理"
+        ],
+        "summary": "批量添加内容",
+        "description": "批量添加多个内容\n\n- **contents**: 内容列表（最多100个）\n- **batch_name**: 批次名称（可选）\n- **auto_deduplicate**: 是否自动去重（默认为true）",
+        "operationId": "create_batch_content_api_v1_content_batch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContentBatchCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Create Batch Content Api V1 Content Batch Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/upload": {
+      "post": {
+        "tags": [
+          "内容管理"
+        ],
+        "summary": "文件导入内容",
+        "description": "通过文件导入内容（支持CSV和JSON格式）\n\nCSV格式要求：\n- title: 标题（必填）\n- content: 内容（必填）  \n- source: 来源（必填）\n- author: 作者（可选）\n- source_url: 原始链接（可选）\n- keywords: 关键词（逗号分隔，可选）\n\nJSON格式要求：\n- 数组格式，每个对象包含上述字段",
+        "operationId": "upload_content_file_api_v1_content_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_content_file_api_v1_content_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Upload Content File Api V1 Content Upload Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/{content_id}": {
+      "get": {
+        "tags": [
+          "内容管理"
+        ],
+        "summary": "获取内容详情",
+        "description": "获取指定内容的详细信息",
+        "operationId": "get_content_detail_api_v1_content__content_id__get",
+        "parameters": [
+          {
+            "name": "content_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "内容ID",
+              "title": "Content Id"
+            },
+            "description": "内容ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Content Detail Api V1 Content  Content Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "内容管理"
+        ],
+        "summary": "更新内容",
+        "description": "更新指定内容的信息",
+        "operationId": "update_content_api_v1_content__content_id__put",
+        "parameters": [
+          {
+            "name": "content_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "内容ID",
+              "title": "Content Id"
+            },
+            "description": "内容ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContentUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Update Content Api V1 Content  Content Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "内容管理"
+        ],
+        "summary": "删除内容",
+        "description": "删除指定的内容",
+        "operationId": "delete_content_api_v1_content__content_id__delete",
+        "parameters": [
+          {
+            "name": "content_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "内容ID",
+              "title": "Content Id"
+            },
+            "description": "内容ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Delete Content Api V1 Content  Content Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/statistics/overview": {
+      "get": {
+        "tags": [
+          "内容管理"
+        ],
+        "summary": "获取内容统计",
+        "description": "获取内容的统计信息",
+        "operationId": "get_content_statistics_api_v1_content_statistics_overview_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Content Statistics Api V1 Content Statistics Overview Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/proxy/": {
+      "get": {
+        "tags": [
+          "代理管理"
+        ],
+        "summary": "获取代理列表",
+        "description": "获取代理列表，支持过滤和分页",
+        "operationId": "get_proxy_list_api_v1_proxy__get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ProxyStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按状态过滤",
+              "title": "Status"
+            },
+            "description": "按状态过滤"
+          },
+          {
+            "name": "quality",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ProxyQuality"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按质量过滤",
+              "title": "Quality"
+            },
+            "description": "按质量过滤"
+          },
+          {
+            "name": "provider",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按供应商过滤",
+              "title": "Provider"
+            },
+            "description": "按供应商过滤"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按国家过滤",
+              "title": "Country"
+            },
+            "description": "按国家过滤"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "页码",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "页码"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "每页数量",
+              "default": 20,
+              "title": "Size"
+            },
+            "description": "每页数量"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Proxy List Api V1 Proxy  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/proxy/active": {
+      "get": {
+        "tags": [
+          "代理管理"
+        ],
+        "summary": "获取可用代理",
+        "description": "获取当前可用的代理列表",
+        "operationId": "get_active_proxies_api_v1_proxy_active_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "返回数量限制",
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "返回数量限制"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Active Proxies Api V1 Proxy Active Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/proxy/best": {
+      "get": {
+        "tags": [
+          "代理管理"
+        ],
+        "summary": "获取最佳代理",
+        "description": "获取当前评分最高的代理",
+        "operationId": "get_best_proxy_api_v1_proxy_best_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Best Proxy Api V1 Proxy Best Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/proxy/test": {
+      "post": {
+        "tags": [
+          "代理管理"
+        ],
+        "summary": "测试代理",
+        "description": "测试指定代理的可用性",
+        "operationId": "test_proxy_api_v1_proxy_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProxyTestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Test Proxy Api V1 Proxy Test Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/proxy/refresh": {
+      "post": {
+        "tags": [
+          "代理管理"
+        ],
+        "summary": "刷新代理列表",
+        "description": "从供应商刷新代理列表",
+        "operationId": "refresh_proxy_list_api_v1_proxy_refresh_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Refresh Proxy List Api V1 Proxy Refresh Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/proxy/{proxy_id}/ban": {
+      "post": {
+        "tags": [
+          "代理管理"
+        ],
+        "summary": "禁用代理",
+        "description": "手动禁用指定的代理",
+        "operationId": "ban_proxy_api_v1_proxy__proxy_id__ban_post",
+        "parameters": [
+          {
+            "name": "proxy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Id"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "禁用原因",
+              "title": "Reason"
+            },
+            "description": "禁用原因"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Ban Proxy Api V1 Proxy  Proxy Id  Ban Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/proxy/{proxy_id}/unban": {
+      "post": {
+        "tags": [
+          "代理管理"
+        ],
+        "summary": "解禁代理",
+        "description": "解禁被禁用的代理",
+        "operationId": "unban_proxy_api_v1_proxy__proxy_id__unban_post",
+        "parameters": [
+          {
+            "name": "proxy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Unban Proxy Api V1 Proxy  Proxy Id  Unban Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/proxy/{proxy_id}": {
+      "delete": {
+        "tags": [
+          "代理管理"
+        ],
+        "summary": "删除代理",
+        "description": "从系统中删除指定的代理",
+        "operationId": "delete_proxy_api_v1_proxy__proxy_id__delete",
+        "parameters": [
+          {
+            "name": "proxy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Delete Proxy Api V1 Proxy  Proxy Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/proxy/statistics": {
+      "get": {
+        "tags": [
+          "代理管理"
+        ],
+        "summary": "获取代理统计",
+        "description": "获取代理系统的统计信息",
+        "operationId": "get_proxy_statistics_api_v1_proxy_statistics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Proxy Statistics Api V1 Proxy Statistics Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/proxy/health": {
+      "get": {
+        "tags": [
+          "代理管理"
+        ],
+        "summary": "代理健康检查",
+        "description": "检查代理系统的健康状态",
+        "operationId": "proxy_health_check_api_v1_proxy_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Proxy Health Check Api V1 Proxy Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "系统"
+        ],
+        "summary": "Root",
+        "description": "服务根路径",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "系统"
+        ],
+        "summary": "Health Check",
+        "description": "服务健康检查",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/info": {
+      "get": {
+        "tags": [
+          "系统"
+        ],
+        "summary": "Service Info",
+        "description": "获取服务详细信息",
+        "operationId": "service_info_info_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_upload_content_file_api_v1_content_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File",
+            "description": "上传文件（支持CSV、JSON格式）"
+          },
+          "batch_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Name",
+            "description": "批次名称"
+          },
+          "auto_deduplicate": {
+            "type": "boolean",
+            "title": "Auto Deduplicate",
+            "description": "是否自动去重",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_content_file_api_v1_content_upload_post"
+      },
+      "ContentBatchCreate": {
+        "properties": {
+          "contents": {
+            "items": {
+              "$ref": "#/components/schemas/ContentCreate"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Contents",
+            "description": "内容列表"
+          },
+          "batch_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Name",
+            "description": "批次名称"
+          },
+          "auto_deduplicate": {
+            "type": "boolean",
+            "title": "Auto Deduplicate",
+            "description": "是否自动去重",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "contents"
+        ],
+        "title": "ContentBatchCreate",
+        "description": "批量创建内容请求模型"
+      },
+      "ContentCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Title",
+            "description": "内容标题"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content",
+            "description": "内容正文"
+          },
+          "source": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentSource"
+              }
+            ],
+            "description": "内容来源"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author",
+            "description": "作者"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2083,
+                "minLength": 1,
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url",
+            "description": "原始链接"
+          },
+          "publish_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publish Time",
+            "description": "发布时间"
+          },
+          "content_type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ],
+            "description": "内容类型",
+            "default": "article"
+          },
+          "images": {
+            "items": {
+              "type": "string",
+              "maxLength": 2083,
+              "minLength": 1,
+              "format": "uri"
+            },
+            "type": "array",
+            "title": "Images",
+            "description": "相关图片链接"
+          },
+          "videos": {
+            "items": {
+              "type": "string",
+              "maxLength": 2083,
+              "minLength": 1,
+              "format": "uri"
+            },
+            "type": "array",
+            "title": "Videos",
+            "description": "相关视频链接"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Keywords",
+            "description": "关键词"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags",
+            "description": "标签"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "分类"
+          },
+          "view_count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "View Count",
+            "description": "浏览量"
+          },
+          "like_count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Like Count",
+            "description": "点赞量"
+          },
+          "comment_count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment Count",
+            "description": "评论量"
+          },
+          "share_count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Count",
+            "description": "分享量"
+          },
+          "quality_score": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality Score",
+            "description": "质量评分"
+          },
+          "crawler_config": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Crawler Config",
+            "description": "爬虫配置"
+          },
+          "priority": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Priority",
+            "description": "处理优先级",
+            "default": 1
+          },
+          "auto_process": {
+            "type": "boolean",
+            "title": "Auto Process",
+            "description": "是否自动处理",
+            "default": true
+          },
+          "extract_images": {
+            "type": "boolean",
+            "title": "Extract Images",
+            "description": "是否提取图片",
+            "default": true
+          },
+          "generate_summary": {
+            "type": "boolean",
+            "title": "Generate Summary",
+            "description": "是否生成摘要",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "content",
+          "source"
+        ],
+        "title": "ContentCreate",
+        "description": "创建内容请求模型"
+      },
+      "ContentCreateRequest": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Title",
+            "description": "内容标题"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content",
+            "description": "内容正文"
+          },
+          "source": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentSource"
+              }
+            ],
+            "description": "内容来源"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author",
+            "description": "作者"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2083,
+                "minLength": 1,
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url",
+            "description": "原始链接"
+          },
+          "publish_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publish Time",
+            "description": "发布时间"
+          },
+          "content_type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ],
+            "description": "内容类型",
+            "default": "article"
+          },
+          "images": {
+            "items": {
+              "type": "string",
+              "maxLength": 2083,
+              "minLength": 1,
+              "format": "uri"
+            },
+            "type": "array",
+            "title": "Images",
+            "description": "相关图片链接"
+          },
+          "videos": {
+            "items": {
+              "type": "string",
+              "maxLength": 2083,
+              "minLength": 1,
+              "format": "uri"
+            },
+            "type": "array",
+            "title": "Videos",
+            "description": "相关视频链接"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Keywords",
+            "description": "关键词"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags",
+            "description": "标签"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "分类"
+          },
+          "view_count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "View Count",
+            "description": "浏览量"
+          },
+          "like_count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Like Count",
+            "description": "点赞量"
+          },
+          "comment_count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment Count",
+            "description": "评论量"
+          },
+          "share_count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Count",
+            "description": "分享量"
+          },
+          "quality_score": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality Score",
+            "description": "质量评分"
+          },
+          "crawler_config": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Crawler Config",
+            "description": "爬虫配置"
+          },
+          "priority": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Priority",
+            "description": "处理优先级",
+            "default": 1
+          },
+          "auto_process": {
+            "type": "boolean",
+            "title": "Auto Process",
+            "description": "是否自动处理",
+            "default": true
+          },
+          "extract_images": {
+            "type": "boolean",
+            "title": "Extract Images",
+            "description": "是否提取图片",
+            "default": true
+          },
+          "generate_summary": {
+            "type": "boolean",
+            "title": "Generate Summary",
+            "description": "是否生成摘要",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "content",
+          "source"
+        ],
+        "title": "ContentCreateRequest",
+        "description": "内容创建请求模型 - 扩展基础模型"
+      },
+      "ContentSource": {
+        "type": "string",
+        "enum": [
+          "toutiao",
+          "baijiahao",
+          "xiaohongshu",
+          "manual",
+          "rss",
+          "api"
+        ],
+        "title": "ContentSource",
+        "description": "内容来源枚举"
+      },
+      "ContentStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "processing",
+          "completed",
+          "failed",
+          "rejected"
+        ],
+        "title": "ContentStatus",
+        "description": "内容状态枚举"
+      },
+      "ContentType": {
+        "type": "string",
+        "enum": [
+          "article",
+          "video",
+          "image",
+          "audio",
+          "other"
+        ],
+        "title": "ContentType",
+        "description": "内容类型枚举"
+      },
+      "ContentUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author"
+          },
+          "keywords": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Keywords"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "quality_score": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality Score"
+          }
+        },
+        "type": "object",
+        "title": "ContentUpdate",
+        "description": "更新内容请求模型"
+      },
+      "CrawlerStatus": {
+        "type": "string",
+        "enum": [
+          "idle",
+          "running",
+          "paused",
+          "stopped",
+          "error",
+          "finished"
+        ],
+        "title": "CrawlerStatus",
+        "description": "爬虫状态枚举"
+      },
+      "CreateCrawlerRequest": {
+        "properties": {
+          "platform": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentSource"
+              }
+            ],
+            "description": "平台类型"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Keywords",
+            "description": "关键词列表"
+          },
+          "max_pages": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Max Pages",
+            "description": "最大抓取页数",
+            "default": 10
+          },
+          "interval": {
+            "type": "number",
+            "maximum": 60.0,
+            "minimum": 0.1,
+            "title": "Interval",
+            "description": "请求间隔(秒)",
+            "default": 5.0
+          },
+          "timeout": {
+            "type": "integer",
+            "maximum": 3600.0,
+            "minimum": 30.0,
+            "title": "Timeout",
+            "description": "超时时间(秒)",
+            "default": 300
+          },
+          "priority": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TaskPriority"
+              }
+            ],
+            "description": "任务优先级",
+            "default": 5
+          },
+          "proxy_enabled": {
+            "type": "boolean",
+            "title": "Proxy Enabled",
+            "description": "是否启用代理",
+            "default": true
+          },
+          "retry_attempts": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Retry Attempts",
+            "description": "重试次数",
+            "default": 3
+          },
+          "custom_settings": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Settings",
+            "description": "自定义配置"
+          }
+        },
+        "type": "object",
+        "required": [
+          "platform",
+          "keywords"
+        ],
+        "title": "CreateCrawlerRequest",
+        "description": "创建爬虫任务请求模型",
+        "example": {
+          "custom_settings": {},
+          "interval": 5.0,
+          "keywords": [
+            "历史",
+            "文化"
+          ],
+          "max_pages": 10,
+          "platform": "toutiao",
+          "priority": 5,
+          "proxy_enabled": true,
+          "retry_attempts": 3,
+          "timeout": 300
+        }
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ProxyQuality": {
+        "type": "string",
+        "enum": [
+          "unknown",
+          "low",
+          "medium",
+          "high",
+          "premium"
+        ],
+        "title": "ProxyQuality",
+        "description": "代理质量等级"
+      },
+      "ProxyStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "inactive",
+          "testing",
+          "banned",
+          "timeout",
+          "error"
+        ],
+        "title": "ProxyStatus",
+        "description": "代理状态枚举"
+      },
+      "ProxyTestRequest": {
+        "properties": {
+          "host": {
+            "type": "string",
+            "title": "Host",
+            "description": "代理主机地址"
+          },
+          "port": {
+            "type": "integer",
+            "maximum": 65535.0,
+            "minimum": 1.0,
+            "title": "Port",
+            "description": "代理端口"
+          },
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Username",
+            "description": "用户名"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password",
+            "description": "密码"
+          },
+          "protocol": {
+            "type": "string",
+            "pattern": "^(http|https|socks4|socks5)$",
+            "title": "Protocol",
+            "description": "协议类型",
+            "default": "http"
+          }
+        },
+        "type": "object",
+        "required": [
+          "host",
+          "port"
+        ],
+        "title": "ProxyTestRequest",
+        "description": "代理测试请求模型"
+      },
+      "TaskPriority": {
+        "type": "integer",
+        "enum": [
+          1,
+          5,
+          8,
+          10
+        ],
+        "title": "TaskPriority",
+        "description": "任务优先级枚举"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "系统",
+      "description": "系统级接口，包括健康检查、服务信息等"
+    },
+    {
+      "name": "爬虫管理",
+      "description": "爬虫任务的创建、启动、停止和监控"
+    },
+    {
+      "name": "内容管理",
+      "description": "内容的添加、查询、更新和删除操作"
+    },
+    {
+      "name": "代理管理",
+      "description": "代理的获取、测试、统计和管理"
+    }
+  ]
+}

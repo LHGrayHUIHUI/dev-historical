@@ -1,0 +1,78 @@
+# 数据源服务配置映射
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: data-source-config
+  namespace: data-source
+  labels:
+    app.kubernetes.io/name: data-source-service
+    app.kubernetes.io/component: config
+data:
+  # 服务配置
+  SERVICE_HOST: "0.0.0.0"
+  SERVICE_PORT: "8000"
+  SERVICE_ENVIRONMENT: "production"
+  SERVICE_WORKERS: "3"
+  SERVICE_API_PREFIX: "/api/v1"
+  
+  # 数据库配置
+  DB_MONGODB_URL: "mongodb://mongo-service.data-source.svc.cluster.local:27017"
+  DB_MONGODB_DB_NAME: "historical_text_data"
+  DB_REDIS_URL: "redis://redis-service.data-source.svc.cluster.local:6379"
+  
+  # 爬虫配置
+  CRAWLER_MAX_CONCURRENT_CRAWLERS: "15"
+  CRAWLER_ENABLE_PROXY: "true"
+  CRAWLER_REQUEST_DELAY_MIN: "3.0"
+  CRAWLER_REQUEST_DELAY_MAX: "10.0"
+  CRAWLER_RETRY_ATTEMPTS: "3"
+  CRAWLER_TIMEOUT: "300"
+  
+  # 代理配置
+  PROXY_PROXY_POOL_SIZE: "200"
+  PROXY_PROXY_CHECK_INTERVAL: "600"
+  PROXY_FAILURE_THRESHOLD: "3"
+  
+  # 日志配置
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{function}:{line} | {message}"
+  LOG_JSON_LOGS: "true"
+  
+  # 监控配置
+  MONITOR_ENABLE_METRICS: "true"
+  MONITOR_METRICS_PORT: "8001"
+  MONITOR_HEALTH_CHECK_INTERVAL: "30"
+  MONITOR_CONSUL_HOST: "consul-service.data-source.svc.cluster.local"
+  MONITOR_CONSUL_PORT: "8500"
+  MONITOR_ENABLE_SERVICE_REGISTRY: "true"
+  
+  # CORS配置
+  SERVICE_CORS_ORIGINS: "http://localhost:3000,https://app.historical-text.com"
+  SERVICE_CORS_METHODS: "GET,POST,PUT,DELETE,OPTIONS"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: data-source-secrets
+  namespace: data-source
+  labels:
+    app.kubernetes.io/name: data-source-service
+    app.kubernetes.io/component: secret
+type: Opaque
+data:
+  # Base64编码的密钥
+  SERVICE_SECRET_KEY: c2VjcmV0LWtleS1mb3ItcHJvZHVjdGlvbi1lbnZpcm9ubWVudA== # secret-key-for-production-environment
+  
+  # 数据库认证
+  MONGODB_USERNAME: YWRtaW4= # admin
+  MONGODB_PASSWORD: cGFzc3dvcmQxMjM= # password123
+  
+  # Redis认证
+  REDIS_PASSWORD: cmVkaXNwYXNzd29yZA== # redispassword
+  
+  # 代理服务API密钥
+  PROXY_API_KEY: cHJveHktYXBpLWtleS0xMjM0NTY= # proxy-api-key-123456
+  
+  # 验证码识别服务
+  CAPTCHA_API_KEY: Y2FwdGNoYS1hcGkta2V5LWFiY2RlZg== # captcha-api-key-abcdef

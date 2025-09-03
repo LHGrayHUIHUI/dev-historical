@@ -1,0 +1,9 @@
+# 数据源服务Kubernetes命名空间
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: data-source
+  labels:
+    name: data-source
+    app.kubernetes.io/name: data-source-service
+    app.kubernetes.io/part-of: historical-text-platform

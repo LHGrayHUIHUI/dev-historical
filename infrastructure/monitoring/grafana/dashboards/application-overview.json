@@ -1,0 +1,432 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "历史文本处理系统 - 应用概览",
+    "tags": [
+      "historical-text",
+      "application",
+      "overview"
+    ],
+    "style": "dark",
+    "timezone": "Asia/Shanghai",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": [
+        "5s",
+        "10s",
+        "30s",
+        "1m",
+        "5m",
+        "15m"
+      ]
+    },
+    "annotations": {
+      "list": []
+    },
+    "variables": {
+      "list": [
+        {
+          "name": "service",
+          "type": "query",
+          "label": "服务",
+          "query": "label_values(up, job)",
+          "refresh": 1,
+          "multi": true,
+          "includeAll": true,
+          "current": {
+            "value": "$__all",
+            "text": "All"
+          }
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "服务可用性",
+        "type": "stat",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "up{job=~\"$service\"}",
+            "legendFormat": "{{job}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "none",
+            "min": 0,
+            "max": 1,
+            "mappings": [
+              {
+                "type": "value",
+                "value": "0",
+                "text": "离线"
+              },
+              {
+                "type": "value", 
+                "value": "1",
+                "text": "在线"
+              }
+            ],
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "horizontal"
+        }
+      },
+      {
+        "id": 2,
+        "title": "总请求数 (5分钟)",
+        "type": "stat",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{job=~\"$service\"}[5m]))",
+            "legendFormat": "请求/秒",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "平均响应时间",
+        "type": "stat", 
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=~\"$service\"}[5m])) by (le))",
+            "legendFormat": "95%分位数",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "decimals": 2,
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "yellow",
+                  "value": 500
+                },
+                {
+                  "color": "red",
+                  "value": 1000
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "错误率",
+        "type": "stat",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{job=~\"$service\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=~\"$service\"}[5m])) * 100",
+            "legendFormat": "错误率",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "decimals": 2,
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "yellow",
+                  "value": 1
+                },
+                {
+                  "color": "red",
+                  "value": 5
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "请求速率趋势",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 4
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{job=~\"$service\"}[5m])) by (job)",
+            "legendFormat": "{{job}}",
+            "refId": "A"
+          }
+        ],
+        "xAxis": {
+          "mode": "time"
+        },
+        "yAxes": [
+          {
+            "label": "请求/秒",
+            "min": 0
+          },
+          {
+            "show": false
+          }
+        ],
+        "legend": {
+          "show": true,
+          "values": true,
+          "current": true,
+          "max": true,
+          "min": true
+        }
+      },
+      {
+        "id": 6,
+        "title": "响应时间分布",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=~\"$service\"}[5m])) by (le, job))",
+            "legendFormat": "{{job}} - 50%分位数",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=~\"$service\"}[5m])) by (le, job))",
+            "legendFormat": "{{job}} - 95%分位数",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=~\"$service\"}[5m])) by (le, job))",
+            "legendFormat": "{{job}} - 99%分位数",
+            "refId": "C"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "响应时间 (秒)",
+            "min": 0
+          },
+          {
+            "show": false
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "HTTP状态码分布",
+        "type": "piechart",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 12
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{job=~\"$service\"}[5m])) by (status)",
+            "legendFormat": "{{status}}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "pieType": "donut",
+          "legend": {
+            "displayMode": "table",
+            "placement": "right"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "活跃连接数",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 12
+        },
+        "targets": [
+          {
+            "expr": "active_connections{job=~\"$service\"}",
+            "legendFormat": "{{job}}",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "连接数",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "系统资源使用",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 12
+        },
+        "targets": [
+          {
+            "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+            "legendFormat": "CPU使用率 - {{instance}}",
+            "refId": "A"
+          },
+          {
+            "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+            "legendFormat": "内存使用率 - {{instance}}",
+            "refId": "B"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "百分比 (%)",
+            "min": 0,
+            "max": 100
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "业务指标 - 文件处理",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 20
+        },
+        "targets": [
+          {
+            "expr": "rate(file_uploads_total{status=\"success\"}[5m])",
+            "legendFormat": "文件上传成功率",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(file_uploads_total{status=\"error\"}[5m])",
+            "legendFormat": "文件上传失败率",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(text_processing_duration_seconds_count{status=\"success\"}[5m])",
+            "legendFormat": "文本处理成功率",
+            "refId": "C"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "操作/秒",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "处理队列状态",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 20
+        },
+        "targets": [
+          {
+            "expr": "text_processing_queue_size{queue_type=\"ocr\"}",
+            "legendFormat": "OCR处理队列",
+            "refId": "A"
+          },
+          {
+            "expr": "text_processing_queue_size{queue_type=\"text_analysis\"}",
+            "legendFormat": "文本分析队列",
+            "refId": "B"
+          },
+          {
+            "expr": "text_processing_queue_size{queue_type=\"file_processing\"}",
+            "legendFormat": "文件处理队列",
+            "refId": "C"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "队列大小",
+            "min": 0
+          }
+        ]
+      }
+    ]
+  },
+  "folderId": 0,
+  "overwrite": true
+}

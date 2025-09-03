@@ -1,0 +1,208 @@
+# 数据源服务部署配置
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-source-deployment
+  namespace: data-source
+  labels:
+    app.kubernetes.io/name: data-source-service
+    app.kubernetes.io/instance: data-source
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: historical-text-platform
+    app.kubernetes.io/managed-by: kubectl
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: data-source-service
+      app.kubernetes.io/instance: data-source
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: data-source-service
+        app.kubernetes.io/instance: data-source
+        app.kubernetes.io/version: "1.0.0"
+        app.kubernetes.io/component: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8001"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: data-source-service-account
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      
+      containers:
+      - name: data-source
+        image: historical-text/data-source:latest
+        imagePullPolicy: Always
+        
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        - containerPort: 8001
+          name: metrics
+          protocol: TCP
+        
+        env:
+        # 从ConfigMap加载配置
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        
+        envFrom:
+        - configMapRef:
+            name: data-source-config
+        - secretRef:
+            name: data-source-secrets
+        
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 10
+        
+        volumeMounts:
+        - name: logs-volume
+          mountPath: /app/logs
+        - name: data-volume
+          mountPath: /app/data
+        - name: config-volume
+          mountPath: /app/config
+          readOnly: true
+      
+      volumes:
+      - name: logs-volume
+        emptyDir: {}
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: data-source-pvc
+      - name: config-volume
+        configMap:
+          name: data-source-config
+      
+      # 反亲和性规则，确保Pod分布在不同节点
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - data-source-service
+              topologyKey: kubernetes.io/hostname
+      
+      # 容忍度
+      tolerations:
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      
+      # 优雅终止
+      terminationGracePeriodSeconds: 60
+
+---
+# 水平Pod自动扩展器
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: data-source-hpa
+  namespace: data-source
+  labels:
+    app.kubernetes.io/name: data-source-service
+    app.kubernetes.io/component: autoscaler
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: data-source-deployment
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60

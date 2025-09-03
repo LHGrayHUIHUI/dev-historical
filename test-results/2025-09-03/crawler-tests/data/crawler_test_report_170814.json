@@ -1,0 +1,123 @@
+{
+  "test_summary": {
+    "service_name": "数据源服务",
+    "test_type": "爬虫功能综合测试",
+    "test_date": "2025-09-03",
+    "test_time": "17:08:04",
+    "duration_seconds": 10.114548,
+    "service_status": "healthy"
+  },
+  "test_results": {
+    "passed": 10,
+    "failed": 8,
+    "success_rate": 55.55555555555556,
+    "total_endpoints_tested": 8
+  },
+  "test_details": [
+    {
+      "test": "health_check",
+      "method": "GET",
+      "endpoint": "/health",
+      "status_code": 200,
+      "response": {
+        "success": true,
+        "data": {
+          "status": "degraded",
+          "timestamp": "2025-09-03T09:08:14.496626",
+          "service": {
+            "name": "data-source-service",
+            "version": "1.0.0",
+            "environment": "testing"
+          },
+          "components": {
+            "database": {
+              "mongodb": {
+                "status": "connected",
+                "latency": 1.06
+              },
+              "redis": {
+                "status": "connected",
+                "latency": 0.46
+              }
+            },
+            "crawler": {
+              "total_tasks": 0,
+              "running_tasks": 0,
+              "success_rate": 0
+            },
+            "proxy": {
+              "total_proxies": 90,
+              "active_proxies": 0,
+              "success_rate": 0.0
+            }
+          },
+          "issues": [
+            "没有可用代理"
+          ]
+        },
+        "message": "服务状态: degraded"
+      }
+    },
+    {
+      "test": "readiness_check",
+      "method": "GET",
+      "endpoint": "/ready",
+      "status_code": 404,
+      "response": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "test": "crawler_api",
+      "method": "GET",
+      "endpoint": "/api/v1/crawlers",
+      "status_code": 200,
+      "response": "{\"success\":true,\"data\":{\"items\":[],\"total\":0,\"page\":1,\"size\":20,\"pages\":0},\"message\":\"获取任务列表成功\"}"
+    },
+    {
+      "test": "platform_api",
+      "method": "GET",
+      "endpoint": "/api/v1/platforms",
+      "status_code": 404,
+      "response": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "test": "platform_api",
+      "method": "GET",
+      "endpoint": "/api/v1/platforms/adapters",
+      "status_code": 404,
+      "response": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "test": "platform_api",
+      "method": "GET",
+      "endpoint": "/api/v1/platforms/toutiao",
+      "status_code": 404,
+      "response": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "test": "platform_api",
+      "method": "GET",
+      "endpoint": "/api/v1/platforms/baijiahao",
+      "status_code": 404,
+      "response": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "test": "platform_api",
+      "method": "GET",
+      "endpoint": "/api/v1/platforms/xiaohongshu",
+      "status_code": 404,
+      "response": "{\"detail\":\"Not Found\"}"
+    }
+  ],
+  "errors": [
+    "就绪检查失败: HTTP 404",
+    "爬虫API /api/v1/crawlers/tasks 异常: HTTP 405",
+    "爬虫API /api/v1/crawlers/status 异常: HTTP 405",
+    "爬虫API /api/v1/crawlers/platforms 异常: HTTP 405",
+    "代理池API /api/v1/proxies 异常: HTTP 404",
+    "代理池API /api/v1/proxies/stats 异常: HTTP 404",
+    "代理池API /api/v1/proxies/health 异常: HTTP 404",
+    "代理池API /api/v1/proxies/providers 异常: HTTP 404"
+  ]
+}

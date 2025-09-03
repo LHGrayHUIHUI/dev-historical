@@ -1,0 +1,180 @@
+# Prometheus 主配置文件
+# Historical Text Project - 系统监控配置
+
+global:
+  scrape_interval: 15s      # 全局抓取间隔
+  evaluation_interval: 15s  # 规则评估间隔
+  external_labels:
+    cluster: 'historical-text-cluster'
+    environment: 'production'
+
+# 告警规则文件
+rule_files:
+  - "alert_rules.yml"
+  - "recording_rules.yml"
+
+# AlertManager 配置
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+      scheme: http
+      timeout: 10s
+
+# 抓取配置
+scrape_configs:
+  # Prometheus 自身监控
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+  # 身份认证服务监控
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth-service:3001']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    params:
+      format: ['prometheus']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 'auth-service:3001'
+
+  # 数据获取服务监控
+  - job_name: 'data-source-service'
+    static_configs:
+      - targets: ['data-source-service:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # 数据采集服务监控
+  - job_name: 'data-collection-service'
+    static_configs:
+      - targets: ['data-collection-service:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    params:
+      format: ['prometheus']
+
+  # 基础设施监控 - Node Exporter (服务器指标)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: 
+        - 'node-exporter:9100'
+    scrape_interval: 15s
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):(.*)'
+        target_label: 'instance'
+        replacement: '${1}'
+
+  # 容器监控 - cAdvisor
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+    params:
+      format: ['prometheus']
+
+  # 数据库监控 - PostgreSQL Exporter
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 'postgres-exporter:9187'
+
+  # Redis 监控
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # MongoDB 监控
+  - job_name: 'mongodb-exporter'
+    static_configs:
+      - targets: ['mongodb-exporter:9216']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # RabbitMQ 监控
+  - job_name: 'rabbitmq-exporter'
+    static_configs:
+      - targets: ['rabbitmq-exporter:9419']
+    scrape_interval: 30s
+
+  # MinIO 监控 (对象存储)
+  - job_name: 'minio-exporter'
+    static_configs:
+      - targets: ['minio:9000']
+    metrics_path: '/minio/v2/metrics/cluster'
+    scrape_interval: 30s
+
+  # Kong API网关监控
+  - job_name: 'kong-prometheus'
+    static_configs:
+      - targets: ['kong:8001']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Blackbox 监控 (外部端点健康检查)
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - http://auth-service:3001/health
+        - http://data-source-service:8000/health
+        - http://data-collection-service:8000/health
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+# 全局存储配置
+storage:
+  tsdb:
+    retention.time: 30d      # 数据保留30天
+    retention.size: 50GB     # 最大存储50GB
+    path: /prometheus/data
+    wal-compression: true    # 启用WAL压缩
+    
+# 远程写入配置 (可选，用于长期存储)
+# remote_write:
+#   - url: "http://thanos-receiver:19291/api/v1/receive"
+#     queue_config:
+#       max_samples_per_send: 10000
+#       max_shards: 200
+
+# 服务发现配置 (Kubernetes环境)
+# kubernetes_sd_configs:
+#   - role: pod
+#     namespaces:
+#       names: ["historical-text"]
