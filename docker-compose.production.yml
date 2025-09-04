@@ -2,74 +2,188 @@
 version: '3.8'
 
 services:
-  # 数据源服务
-  data-source-service:
-    image: ${IMAGE_PREFIX}-data-source:${VERSION_TAG}
+  # 文件处理服务 (原 data-source-service)
+  file-processor:
+    image: ${IMAGE_PREFIX}-file-processor:${VERSION_TAG}
     build:
-      context: ./services/data-source
+      context: ./services/file-processor
       dockerfile: Dockerfile
       target: runner
       args:
         - BUILD_DATE=${BUILD_DATE}
         - VERSION=${VERSION_TAG}
         - GIT_COMMIT=${GIT_COMMIT}
-    container_name: historical-text-data-source-prod
+    container_name: historical-text-file-processor-prod
     restart: unless-stopped
     environment:
+      - SERVICE_NAME=file-processor
+      - SERVICE_VERSION=${VERSION_TAG}
       - SERVICE_ENVIRONMENT=production
       - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=${DATA_SOURCE_PORT}
-      - SERVICE_SECRET_KEY=${SERVICE_SECRET_KEY}
+      - SERVICE_PORT=${FILE_PROCESSOR_PORT}
       
-      # 数据库配置
-      - DB_MONGODB_URL=mongodb://admin:${MONGO_ROOT_PASSWORD}@mongodb:27017/historical_text_prod?authSource=admin
-      - DB_REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+      # 注意：文件处理服务不再有数据库依赖
       
-      # 爬虫配置
-      - CRAWLER_MAX_CONCURRENT_CRAWLERS=20
-      - CRAWLER_ENABLE_PROXY=true
-      - CRAWLER_REQUEST_DELAY_MIN=3.0
-      - CRAWLER_REQUEST_DELAY_MAX=8.0
-      
-      # 代理配置
-      - PROXY_PROXY_POOL_SIZE=200
-      - PROXY_PROXY_CHECK_INTERVAL=300
+      # 处理配置
+      - MAX_FILE_SIZE_MB=100
+      - SUPPORTED_LANGUAGES=chi_sim+eng
+      - PROCESSING_TIMEOUT=600
       
       # 日志配置
-      - LOG_LOG_LEVEL=${LOG_LEVEL}
-      - LOG_JSON_LOGS=true
+      - LOG_LEVEL=${LOG_LEVEL}
+      - LOG_FORMAT={time} | {level} | {message}
       
       # 监控配置
-      - MONITOR_ENABLE_METRICS=true
-      - MONITOR_CONSUL_HOST=consul
-      - MONITOR_CONSUL_PORT=8500
+      - METRICS_ENABLED=true
     ports:
-      - "${DATA_SOURCE_PORT}:${DATA_SOURCE_PORT}"
+      - "${FILE_PROCESSOR_PORT}:${FILE_PROCESSOR_PORT}"
     volumes:
-      - ./logs/data-source:/app/logs
-      - ./data/data-source:/app/data
+      - ./logs/file-processor:/app/logs
+      - ./temp/file-processor:/app/temp
+    networks:
+      - historical-text-network
+    # 注意：文件处理服务不依赖数据库
+    deploy:
+      resources:
+        limits:
+          memory: ${FILE_PROCESSOR_MEMORY_LIMIT}M
+          cpus: '${FILE_PROCESSOR_CPU_LIMIT}'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    labels:
+      - "com.historical-text.service=file-processor"
+      - "com.historical-text.version=${VERSION_TAG}"
+      - "com.historical-text.environment=production"
+      
+  # 统一存储服务 (新增)
+  storage-service:
+    image: ${IMAGE_PREFIX}-storage-service:${VERSION_TAG}
+    build:
+      context: ./services/storage-service
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        - BUILD_DATE=${BUILD_DATE}
+        - VERSION=${VERSION_TAG}
+        - GIT_COMMIT=${GIT_COMMIT}
+    container_name: historical-text-storage-service-prod
+    restart: unless-stopped
+    environment:
+      - SERVICE_NAME=storage-service
+      - SERVICE_VERSION=${VERSION_TAG}
+      - SERVICE_ENVIRONMENT=production
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=${STORAGE_SERVICE_PORT}
+      - SERVICE_SECRET_KEY=${SERVICE_SECRET_KEY}
+      
+      # 数据库配置 - 统一存储服务管理所有数据库
+      - MONGODB_URL=mongodb://admin:${MONGO_ROOT_PASSWORD}@mongodb:27017/historical_text_prod?authSource=admin
+      - POSTGRESQL_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgresql:5432/historical_text_prod
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - RABBITMQ_URL=amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+      
+      # MinIO配置 - 统一存储服务管理对象存储
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET_NAME=historical-bucket
+      - MINIO_SECURE=true
+      
+      # 外部服务配置 - 调用file-processor
+      - FILE_PROCESSOR_URL=http://file-processor:${FILE_PROCESSOR_PORT}
+      
+      # 日志配置
+      - LOG_LEVEL=${LOG_LEVEL}
+      - JSON_LOGS=true
+      
+      # 监控配置
+      - METRICS_ENABLED=true
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+    ports:
+      - "${STORAGE_SERVICE_PORT}:${STORAGE_SERVICE_PORT}"
+    volumes:
+      - ./logs/storage-service:/app/logs
+      - ./temp/storage-service:/app/temp
     networks:
       - historical-text-network
     depends_on:
       - mongodb
+      - postgresql
       - redis
+      - minio
+      - rabbitmq
       - consul
+      - file-processor
     deploy:
       resources:
         limits:
-          memory: ${DATA_SOURCE_MEMORY_LIMIT}M
-          cpus: '${DATA_SOURCE_CPU_LIMIT}'
+          memory: ${STORAGE_SERVICE_MEMORY_LIMIT}M
+          cpus: '${STORAGE_SERVICE_CPU_LIMIT}'
         reservations:
-          memory: 256M
-          cpus: '0.25'
+          memory: 512M
+          cpus: '0.5'
     labels:
-      - "com.historical-text.service=data-source"
+      - "com.historical-text.service=storage-service"
       - "com.historical-text.version=${VERSION_TAG}"
       - "com.historical-text.environment=production"
 
+  # PostgreSQL数据库 (新增)
+  postgresql:
+    image: postgres:15-alpine
+    container_name: historical-text-postgresql-prod
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DATABASE}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresql_prod_data:/var/lib/postgresql/data
+      - ./docker/postgresql/init-prod.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - historical-text-network
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+          
+  # MinIO对象存储 (新增)
+  minio:
+    image: minio/minio:latest
+    container_name: historical-text-minio-prod
+    restart: unless-stopped
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
+      - MINIO_REGION=${MINIO_REGION}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_prod_data:/data
+    networks:
+      - historical-text-network
+    command: server /data --console-address ":9001"
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+          
   # MongoDB数据库
   mongodb:
-    image: mongo:5.0
+    image: mongo:7.0
     container_name: historical-text-mongodb-prod
     restart: unless-stopped
     environment:
@@ -175,7 +289,8 @@ services:
     networks:
       - historical-text-network
     depends_on:
-      - data-source-service
+      - file-processor
+      - storage-service
     deploy:
       resources:
         limits:
@@ -239,7 +354,8 @@ services:
     networks:
       - historical-text-network
     depends_on:
-      - data-source-service
+      - file-processor
+      - storage-service
 
 volumes:
   mongodb_prod_data:
@@ -248,8 +364,20 @@ volumes:
       type: none
       o: bind
       device: ./data/mongodb
+  postgresql_prod_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/postgresql
   redis_prod_data:
     driver: local
+  minio_prod_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/minio
   consul_prod_data:
     driver: local
   rabbitmq_prod_data:

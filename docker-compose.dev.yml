@@ -101,80 +101,81 @@ services:
       timeout: 5s
       retries: 5
 
-  # 数据源服务
-  data-source-service:
+  # 文件处理服务 (原 data-source-service)
+  file-processor:
     image: python:3.11-slim
-    container_name: integration-data-source
+    container_name: integration-file-processor
     ports:
       - "8001:8000"
     environment:
-      - SERVICE_ENVIRONMENT=testing
+      - SERVICE_NAME=file-processor
+      - SERVICE_VERSION=1.0.0
       - SERVICE_HOST=0.0.0.0
       - SERVICE_PORT=8000
+      - SERVICE_ENVIRONMENT=testing
       - DEBUG=true
       
-      # 数据库配置
-      - DATABASE_URL=postgresql+asyncpg://postgres:testpass123@postgres:5432/historical_text_test
-      - MONGODB_URL=mongodb://mongo:27017/historical_text_test
-      - REDIS_URL=redis://redis:6379/0
-      - RABBITMQ_URL=amqp://testuser:testpass123@rabbitmq:5672/
+      # 日志配置
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT={time} | {level} | {message}
       
-      # 安全配置
-      - SECRET_KEY=integration-test-secret-key
-      - JWT_SECRET_KEY=integration-test-jwt-secret
-      - JWT_ALGORITHM=HS256
+      # 处理配置
+      - MAX_FILE_SIZE_MB=50
+      - SUPPORTED_LANGUAGES=chi_sim+eng
+      - PROCESSING_TIMEOUT=300
+      
+      # 注意：文件处理服务不再有数据库依赖
     volumes:
-      - ./services/data-source:/app
-      - ./services/data-source/logs:/app/logs
+      - ./services/file-processor:/app
+      - ./services/file-processor/logs:/app/logs
+      - ./services/file-processor/temp:/app/temp
     working_dir: /app
     command: >
       sh -c "
-        apt-get update && apt-get install -y gcc curl &&
+        apt-get update && apt-get install -y gcc curl tesseract-ocr tesseract-ocr-chi-sim &&
         pip install --no-cache-dir -r requirements.txt &&
         python -m src.main
       "
     networks:
       - test_network
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      mongo:
-        condition: service_healthy
+    # 注意：文件处理服务不依赖数据库，只需要等待系统准备
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 30s
 
-  # 数据采集服务
-  data-collection-service:
+  # 统一存储服务 (原 data-collection-service)
+  storage-service:
     image: python:3.11-slim
-    container_name: integration-data-collection
+    container_name: integration-storage-service
     ports:
-      - "8003:8002"
+      - "8002:8000"
     environment:
-      - SERVICE_ENVIRONMENT=testing
+      - SERVICE_NAME=storage-service
+      - SERVICE_VERSION=1.0.0
       - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8002
+      - SERVICE_PORT=8000
+      - SERVICE_ENVIRONMENT=testing
       - DEBUG=true
       
-      # 数据库配置
-      - DATABASE_URL=postgresql+asyncpg://postgres:testpass123@postgres:5432/historical_text_test
+      # 数据库配置 - 统一存储服务管理所有数据库
+      - MONGODB_URL=mongodb://testuser:testpass123@mongo:27017/historical_text_test?authSource=admin
+      - POSTGRESQL_URL=postgresql+asyncpg://postgres:testpass123@postgres:5432/historical_text_test
       - REDIS_URL=redis://redis:6379/0
       - RABBITMQ_URL=amqp://testuser:testpass123@rabbitmq:5672/
       
-      # MinIO配置
+      # MinIO配置 - 统一存储服务管理对象存储
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESS_KEY=testuser
       - MINIO_SECRET_KEY=testpass123
-      - MINIO_BUCKET_NAME=historical-texts-test
+      - MINIO_BUCKET_NAME=historical-bucket
       - MINIO_SECURE=false
+      
+      # 外部服务配置 - 调用file-processor
+      - FILE_PROCESSOR_URL=http://file-processor:8000
       
       # 安全配置
       - SECRET_KEY=integration-test-secret-key
@@ -185,12 +186,11 @@ services:
       - MAX_FILE_SIZE=10485760
       - MAX_BATCH_SIZE=10
       - VIRUS_SCAN_ENABLED=false
-      - OCR_ENABLED=false
       - METRICS_ENABLED=true
     volumes:
-      - ./services/data-collection:/app
-      - ./services/data-collection/logs:/app/logs
-      - ./services/data-collection/temp:/app/temp
+      - ./services/storage-service:/app
+      - ./services/storage-service/logs:/app/logs
+      - ./services/storage-service/temp:/app/temp
     working_dir: /app
     command: >
       sh -c "
@@ -209,9 +209,13 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      mongo:
+        condition: service_healthy
+      file-processor:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -229,15 +233,17 @@ services:
       sh -c "
         apt-get update && apt-get install -y curl &&
         pip install requests pytest httpx &&
-        echo '等待服务启动...' &&
-        sleep 60 &&
+        echo '等待微服务服务启动...' &&
+        echo '检查 file-processor 服务 (http://file-processor:8000/health)' &&
+        echo '检查 storage-service 服务 (http://storage-service:8000/health)' &&
+        sleep 90 &&
         python integration_test_runner.py
       "
     networks:
       - test_network
     depends_on:
-      - data-source-service
-      - data-collection-service
+      - file-processor
+      - storage-service
     profiles:
       - testing
 

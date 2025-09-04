@@ -17,11 +17,14 @@
 
 ## 核心功能
 
-### 数据获取与处理
-- **多平台数据获取**：支持今日头条、百家号、小红书等平台的内容爬取
+### 内容管理与处理
+- **手动内容输入**：支持单个内容提交和批量导入
+- **多格式支持**：JSON和CSV文件格式的批量导入
+- **多媒体内容支持**：文本+图片+视频的混合内容管理 🆕
+- **微服务协作架构**：file-processor专注文件处理，storage-service负责统一存储 🆕
 - **智能数据分类**：基于AI的内容分类和相似度检测
-- **数据去重优化**：高精度的文本和图片去重算法
-- **图片处理服务**：自动化的图片优化、格式转换和水印处理
+- **数据去重优化**：高精度的文本去重算法
+- **内容质量管理**：自动内容质量评估和统计分析
 
 ### AI智能服务
 - **大模型服务集群**：支持多种开源和商业AI模型的统一调用
@@ -29,11 +32,12 @@
 - **内容质量控制**：自动化的内容审核和质量评估
 - **多内容合并生成**：智能合并多个相关内容生成综合文本
 
-### 发布与管理
-- **多平台发布**：统一的内容发布服务，支持微博、微信、抖音等平台
-- **客户消息服务**：个性化的客户沟通和消息推送
+### 内容管理功能
+- **多维度搜索**：支持关键词、作者、分类等多维度内容检索
+- **高级过滤**：时间范围、质量评分、浏览量等过滤条件
+- **批量操作**：支持批量编辑、删除和状态更新
+- **统计分析**：实时内容统计和质量分析报告
 - **Vue3管理界面**：现代化的Web管理界面，支持可视化操作
-- **系统监控运维**：全面的系统监控和自动化运维功能
 
 ## 技术栈
 
@@ -125,8 +129,8 @@ Historical Text Project/
 │   ├── frontend/                  # 前端开发文档
 │   └── api/                       # API文档
 ├── services/                      # 微服务目录
-│   ├── data-source/               # 数据源服务
-│   ├── data-storage/              # 数据存储服务
+│   ├── file-processor/            # 文件处理服务 (纯文件处理，无数据库依赖) ✅
+│   ├── storage-service/           # 统一存储服务 (所有数据库和业务逻辑) ✅
 │   ├── data-processing/           # 数据处理服务
 │   ├── ai-model/                  # AI模型服务
 │   ├── text-optimization/         # 文本优化服务
@@ -321,12 +325,15 @@ Historical Text Project/
 
 2. **启动微服务**
    ```bash
-   # 数据源服务
-   cd services/data-source
+   # 文件处理服务
+   cd services/file-processor
    pip install -r requirements.txt
    python -m src.main
    
-   # 其他服务类似...
+   # 统一存储服务
+   cd services/storage-service
+   pip install -r requirements.txt
+   python -m src.main
    ```
 
 3. **启动前端应用**
@@ -363,11 +370,15 @@ docker-compose -f docker-compose.production.yml up -d
 ```
 
 #### 访问服务
-- **数据源服务**: http://localhost:8000
-- **API文档**: http://localhost:8000/docs
+- **文件处理服务**: http://localhost:8001
+- **统一存储服务**: http://localhost:8002
+- **file-processor API文档**: http://localhost:8001/docs
+- **storage-service API文档**: http://localhost:8002/docs
 - **监控面板**: http://localhost:3000 (Grafana)
-- **MongoDB**: mongodb://localhost:27017
-- **Redis**: redis://localhost:6379
+- **MongoDB**: mongodb://localhost:27018
+- **PostgreSQL**: postgresql://localhost:5433
+- **Redis**: redis://localhost:6380
+- **MinIO**: http://localhost:9001 (控制台: 9002)
 
 ## 部署指南
 
@@ -379,8 +390,8 @@ docker-compose -f docker-compose.production.yml up -d
    ./scripts/build-optimized-images.sh
    
    # 或单独构建
-   docker build -f services/data-source/Dockerfile.optimized -t data-source-service services/data-source
-   docker build -f services/data-collection/Dockerfile.optimized -t data-collection-service services/data-collection
+   docker build -f services/file-processor/Dockerfile -t file-processor-service services/file-processor
+   docker build -f services/storage-service/Dockerfile -t storage-service-service services/storage-service
    ```
 
 2. **Kubernetes部署**
@@ -511,14 +522,16 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 - ✅ **Story 1.2测试**: 本地Docker环境测试成功，API接口验证通过
 - ✅ **Story 1.3完成**: 数据采集与存储服务开发完成，支持文件上传、文本提取和存储管理
 - ✅ **Story 1.4完成**: 系统监控与日志管理完成，包含Prometheus/Grafana/ELK/Jaeger完整监控栈
+- ✅ **微服务架构重构**: file-processor与storage-service职责清晰分离，架构优化完成 🆕
 - 📋 **前端开发**: 准备开始Vue3管理界面开发
 
 ### 下一步计划
 
 1. **Epic 1完成**: ✅ Epic 1全部Story已完成，包含基础架构、数据获取、数据采集、监控日志
-2. **Epic 2开始**: 开发数据处理和智能分类微服务
-3. **Epic 3实施**: 集成AI大模型服务和文本优化功能
-4. **Epic 4实施**: 开发Vue3统一管理界面和发布系统
+2. **架构重构完成**: ✅ 2025-09-04完成微服务架构重构，职责分离优化  
+3. **Epic 2开始**: 开发数据处理和智能分类微服务(基于新架构)
+4. **Epic 3实施**: 集成AI大模型服务和文本优化功能
+5. **Epic 4实施**: 开发Vue3统一管理界面和发布系统
 
 ### 已完成Story详情
 
@@ -557,6 +570,7 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 #### Story 1.3: 数据采集与存储服务开发 ✅
 **完成时间**: 2025-09-03  
 **状态**: ✅ 完成并已上传Docker Hub  
+**架构重构**: 2025-09-04 完成微服务架构重构，职责分离优化  
 **Docker镜像**: lhgray/historical-projects:data-collection-latest (748MB)
 
 **主要成果**:
@@ -572,6 +586,26 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 - 🔧 **可扩展设计**: 插件化文本提取器架构，支持自定义处理器
 
 **技术文件**: 45个核心文件，包括数据模型、文本处理器、API控制器、工作器和完整测试套件
+
+#### 微服务架构重构完成 ✅
+**重构时间**: 2025-09-04  
+**状态**: ✅ 架构重构和测试完成  
+**影响级别**: 重大架构重设计
+
+**重构成果**:
+- 🔄 **服务重命名**: `data-source` → `file-processor` (文件处理服务)，`data-collection` → `storage-service` (统一存储服务)
+- ⚡ **职责分离**: file-processor专注纯文件处理(无数据库依赖)，storage-service统一管理所有存储系统
+- 🗄️ **存储统一**: storage-service管理MongoDB+PostgreSQL+Redis+MinIO+RabbitMQ完整存储栈
+- 🔗 **服务协作**: 前端只需调用storage-service，内部调用file-processor处理文件
+- 📄 **文档同步**: 两个服务的README.md、Swagger配置、Docker配置全面更新
+- 🐳 **Docker重构**: 开发环境和生产环境配置文件完整更新
+- 🧪 **测试验证**: 所有服务成功启动，API功能测试全部通过
+
+**新架构优势**:
+- **单一职责**: 每个服务专注核心功能，边界清晰
+- **开发简化**: 前端只需要调用一个统一的存储服务入口
+- **维护便利**: 统一的存储管理，简化的服务关系
+- **扩展灵活**: 各服务可独立优化和扩展
 
 #### Story 1.4: 系统监控与日志管理 ✅
 **完成时间**: 2025-09-03  

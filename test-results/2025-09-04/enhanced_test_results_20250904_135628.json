@@ -1,0 +1,18 @@
+{
+  "start_time": "2025-09-04T13:56:28.229578",
+  "tests": [
+    {
+      "test_name": "服务健康检查",
+      "status": "FAIL",
+      "details": "",
+      "error": "连接失败: HTTPConnectionPool(host='localhost', port=8004): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x106c080d0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "timestamp": "2025-09-04T13:56:28.236818"
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1
+  },
+  "end_time": "2025-09-04T13:56:28.236828"
+}

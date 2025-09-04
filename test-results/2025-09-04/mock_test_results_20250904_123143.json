@@ -1,0 +1,81 @@
+{
+  "start_time": "2025-09-04T12:31:43.135950",
+  "tests": [
+    {
+      "test_name": "健康检查",
+      "status": "PASS",
+      "details": "状态: unknown",
+      "error": null,
+      "timestamp": "2025-09-04T12:31:43.144764"
+    },
+    {
+      "test_name": "服务信息",
+      "status": "PASS",
+      "details": "unknown vunknown",
+      "error": null,
+      "timestamp": "2025-09-04T12:31:43.146300"
+    },
+    {
+      "test_name": "API文档",
+      "status": "PASS",
+      "details": "Swagger文档可访问",
+      "error": null,
+      "timestamp": "2025-09-04T12:31:43.147617"
+    },
+    {
+      "test_name": "OpenAPI模式",
+      "status": "PASS",
+      "details": "API路径数: 8",
+      "error": null,
+      "timestamp": "2025-09-04T12:31:43.158834"
+    },
+    {
+      "test_name": "内容创建",
+      "status": "FAIL",
+      "details": "",
+      "error": "HTTP 500",
+      "timestamp": "2025-09-04T12:31:43.160820"
+    },
+    {
+      "test_name": "内容列表",
+      "status": "FAIL",
+      "details": "",
+      "error": "HTTP 500",
+      "timestamp": "2025-09-04T12:31:43.164939"
+    },
+    {
+      "test_name": "内容搜索",
+      "status": "FAIL",
+      "details": "",
+      "error": "HTTP 500",
+      "timestamp": "2025-09-04T12:31:43.166915"
+    },
+    {
+      "test_name": "统计信息",
+      "status": "FAIL",
+      "details": "",
+      "error": "HTTP 500",
+      "timestamp": "2025-09-04T12:31:43.168897"
+    },
+    {
+      "test_name": "批量内容创建",
+      "status": "PASS",
+      "details": "创建 0 条内容",
+      "error": null,
+      "timestamp": "2025-09-04T12:31:43.170720"
+    },
+    {
+      "test_name": "文件上传端点",
+      "status": "PASS",
+      "details": "端点可访问 (状态: 400)",
+      "error": null,
+      "timestamp": "2025-09-04T12:31:43.172791"
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "passed": 6,
+    "failed": 4
+  },
+  "end_time": "2025-09-04T12:31:43.172794"
+}

@@ -46,7 +46,49 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 消息队列: Apache Kafka 3.0+ + RabbitMQ + Celery
 - 容器化: Docker + Kubernetes + GPU Operator
 
-## 文档结构
+## 文档结构与组织规范
+
+### 文档存放规则
+
+#### 1. 项目更新日志
+**存放位置**: `changelogs/YYYY-MM-DD/`
+- 按日期组织存放，一个日期一个文件夹
+- 命名格式：`changelogs/2025-09-04/architecture-refactor.md`
+- 禁止直接在项目根目录下创建更新文档
+
+#### 2. 测试数据和日志
+**存放位置**: `test-results/`
+```
+test-results/
+├── YYYY-MM-DD/        # 按日期存放测试结果
+│   ├── unit/          # 单元测试结果
+│   ├── integration/   # 集成测试结果  
+│   └── performance/   # 性能测试结果
+├── data/              # 测试数据文件
+│   ├── sample_content.json    # 示例内容数据
+│   ├── mock_data/     # 模拟数据集
+│   └── fixtures/      # 测试夹具
+├── logs/              # 测试日志
+│   ├── error.log      # 错误日志
+│   ├── debug.log      # 调试日志
+│   └── performance.log # 性能日志
+└── reports/           # 测试报告
+    ├── coverage/      # 覆盖率报告
+    ├── html/          # HTML格式报告
+    └── junit/         # JUnit格式报告
+```
+
+**重要规则**:
+- 所有测试相关文件必须存放在 `test-results/` 目录下
+- 禁止在项目根目录下直接创建测试文件
+- 测试数据文件统一存放在 `test-results/data/` 下
+- 临时测试文件也必须存放在此目录结构中
+
+#### 3. 项目模块文档
+**存放位置**: `modules/{module-name}/docs/`
+- 每个模块的使用介绍必须存放在相应模块的docs文件夹下
+- 禁止在项目根目录下直接放置模块使用文档
+- 示例：`modules/data-source/docs/README.md`
 
 ### 核心文档位置
 - **Epic和用户故事**: `docs/epics/epics.md` 和 `docs/user-stories.md`
@@ -102,6 +144,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Vue3**: TypeScript覆盖率>90%，组件复用率>80%，使用ESLint和Prettier
 - **提交规范**: 使用Conventional Commits，按Epic分类（如：`feat(epic-1): 新功能`）
 
+### 文档维护规范
+- **日志更新**: 每次重大变更后必须在 `changelogs/` 下创建日期文件夹和更新文档
+- **测试数据**: 所有测试相关文件必须放在 `test-results/` 目录下
+- **模块文档**: 每个模块的使用说明必须放在对应模块的 `docs/` 文件夹下
+- **根目录清洁**: 禁止在项目根目录下直接创建文档文件（除README.md和CLAUDE.md外）
+
 ### 注释要求
 - 所有注释必须使用中文
 - 方法、类等添加全面注释（至少30%的注释密度）
@@ -138,8 +186,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ **Story 1.1完成**: 微服务基础架构搭建
 - ✅ **Story 1.2完成**: 数据获取服务开发
 - ✅ **Story 1.3完成**: 数据采集存储服务开发
+- ✅ **Story 1.4完成**: 系统监控与日志管理
 - ✅ **Docker Hub发布**: 两个核心微服务镜像已上传
-- 🚧 Story 1.4开发准备中: 数据处理服务
+- ✅ **微服务架构分离**: data-source与data-collection业务功能清晰分离 🆕
 - 📋 Vue3前端应用待开发
 
 ### 工作方式
@@ -400,4 +449,4 @@ tests/                      # 测试套件
 
 ---
 
-*CLAUDE.md文档最后更新时间: 2025-09-03*
+*CLAUDE.md文档最后更新时间: 2025-09-04*
