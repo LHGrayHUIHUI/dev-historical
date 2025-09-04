@@ -1,0 +1,197 @@
+# Jaeger 链路追踪配置文件
+# Historical Text Project - 分布式追踪配置
+
+# 存储后端配置 - 支持内存、ElasticSearch、Cassandra、Kafka等
+storage:
+  type: elasticsearch
+  elasticsearch:
+    server-urls: http://elasticsearch:9200
+    index-prefix: jaeger
+    username: ${ELASTICSEARCH_USERNAME}
+    password: ${ELASTICSEARCH_PASSWORD}
+    tls:
+      enabled: false
+      skip-host-verify: true
+    max-span-age: 168h # 7天
+    num-shards: 2
+    num-replicas: 0
+    bulk:
+      size: 5000000  # 5MB
+      workers: 1
+      actions: 1000
+      flush-interval: 200ms
+
+# 收集器配置
+collector:
+  # HTTP端口配置
+  http-server:
+    host-port: 0.0.0.0:14268
+    
+  # gRPC端口配置  
+  grpc-server:
+    host-port: 0.0.0.0:14250
+    
+  # Zipkin兼容性
+  zipkin:
+    host-port: 0.0.0.0:9411
+    
+  # 队列配置
+  queue:
+    size: 2000
+    
+  # 工作线程数
+  workers: 50
+  
+  # 日志级别
+  log-level: info
+
+# 查询服务配置
+query:
+  # HTTP服务配置
+  http-server:
+    host-port: 0.0.0.0:16686
+    
+  # gRPC服务配置
+  grpc-server:
+    host-port: 0.0.0.0:16685
+    
+  # UI配置
+  ui:
+    # UI基础路径
+    base-path: /
+    
+    # Logo配置
+    logo: /static/historical-text-logo.svg
+    
+    # 搜索配置
+    search:
+      max-traces: 1500
+      max-lookback: 168h # 7天
+      
+    # 依赖图配置
+    dependencies:
+      dag-max-services: 200
+      
+  # 日志级别
+  log-level: info
+  
+  # 服务发现配置
+  service-discovery:
+    enabled: true
+    refresh-interval: 1m
+
+# 代理配置（可选）
+agent:
+  # Jaeger代理端口配置
+  processor:
+    jaeger-compact:
+      server-host-port: 0.0.0.0:6831
+      server-max-packet-size: 65000
+      
+    jaeger-binary:
+      server-host-port: 0.0.0.0:6832
+      server-max-packet-size: 65000
+      
+  # 采样配置
+  sampling:
+    # 默认采样率
+    default_strategy:
+      type: probabilistic
+      param: 0.1  # 10%采样率
+      
+    # 每个服务的采样策略
+    per_service_strategies:
+      - service: "auth-service"
+        type: probabilistic
+        param: 0.2  # 20%采样率
+        
+      - service: "data-source-service"
+        type: probabilistic
+        param: 0.1  # 10%采样率
+        
+      - service: "data-collection-service"
+        type: probabilistic
+        param: 0.15 # 15%采样率
+        
+      # 高频率操作使用更低采样率
+      - service: "monitoring-service"
+        type: probabilistic
+        param: 0.05 # 5%采样率
+
+# 指标配置
+metrics:
+  # Prometheus指标导出
+  prometheus:
+    enabled: true
+    host-port: 0.0.0.0:14269
+    namespace: jaeger
+    
+  # 指标后端配置  
+  backend: prometheus
+  
+  # 指标存储配置
+  storage:
+    type: prometheus
+    prometheus:
+      server-url: http://prometheus:9090
+      connect-timeout: 30s
+      query-timeout: 30s
+
+# 健康检查配置
+health-check:
+  http-port: 14268
+  
+# 采样策略配置
+sampling-strategies:
+  # 默认策略
+  default_strategy:
+    type: probabilistic
+    param: 0.001 # 0.1%默认采样率
+    
+  # 服务特定策略
+  per_service_strategies:
+    # 认证服务 - 重要性高，采样率高
+    - service: "auth-service"
+      type: probabilistic
+      param: 0.1
+      max_traces_per_second: 100
+      
+    # 数据源服务 - 中等重要性
+    - service: "data-source-service" 
+      type: probabilistic
+      param: 0.05
+      max_traces_per_second: 50
+      
+    # 数据采集服务 - 中等重要性
+    - service: "data-collection-service"
+      type: probabilistic
+      param: 0.05
+      max_traces_per_second: 50
+      
+    # 文件处理服务 - 高频操作，低采样率
+    - service: "file-processor-service"
+      type: probabilistic
+      param: 0.01
+      max_traces_per_second: 20
+      
+    # 存储服务 - 基础设施，低采样率
+    - service: "storage-service"
+      type: probabilistic  
+      param: 0.01
+      max_traces_per_second: 10
+      
+    # 监控服务本身 - 极低采样率避免递归
+    - service: "monitoring-service"
+      type: probabilistic
+      param: 0.001
+      max_traces_per_second: 5
+
+# 日志配置
+log:
+  level: info
+  format: json
+  
+# 管理端口配置
+admin:
+  http:
+    host-port: 0.0.0.0:14269

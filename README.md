@@ -10,7 +10,7 @@
 
 | Epic ID | Epic 名称 | 优先级 | 状态 | 预估工期 | 用户故事数 |
 |---------|-----------|--------|------|----------|------------|
-| Epic-1  | 微服务基础设施和数据获取 | 高 | 待开始 | 4-6周 | 4个 |
+| Epic-1  | 微服务基础设施和数据获取 | 高 | ✅ **已完成** | 4-6周 | 4/4个 ✅ |
 | Epic-2  | 数据处理和智能分类微服务 | 高 | 待开始 | 6-8周 | 5个 |
 | Epic-3  | AI大模型服务和内容文本优化 | 中 | 待开始 | 4-6周 | 5个 |
 | Epic-4  | 发布管理和Vue3统一界面 | 中 | 待开始 | 6-8周 | 5个 |
@@ -370,15 +370,31 @@ docker-compose -f docker-compose.production.yml up -d
 ```
 
 #### 访问服务
+
+##### 🔧 微服务API
 - **文件处理服务**: http://localhost:8001
 - **统一存储服务**: http://localhost:8002
 - **file-processor API文档**: http://localhost:8001/docs
 - **storage-service API文档**: http://localhost:8002/docs
-- **监控面板**: http://localhost:3000 (Grafana)
+
+##### 📊 监控服务 (Epic 1.4 - 已完成)
+- **Prometheus指标收集**: http://localhost:9090
+- **Grafana可视化仪表板**: http://localhost:3000 (admin/admin123)
+- **Jaeger链路追踪**: http://localhost:16686
+- **AlertManager告警管理**: http://localhost:9093
+- **Kibana日志分析**: http://localhost:5601
+
+##### 💾 数据库服务  
 - **MongoDB**: mongodb://localhost:27018
 - **PostgreSQL**: postgresql://localhost:5433
 - **Redis**: redis://localhost:6380
-- **MinIO**: http://localhost:9001 (控制台: 9002)
+- **MinIO对象存储**: http://localhost:9001 (控制台: 9002)
+
+##### 🚀 启动监控栈
+```bash
+# 启动完整监控系统
+docker-compose -f docker-compose.monitoring.yml up -d
+```
 
 ## 部署指南
 
