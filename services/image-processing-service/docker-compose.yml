@@ -1,0 +1,73 @@
+# 图像处理服务Docker Compose配置
+version: '3.8'
+
+services:
+  image-processing-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: image-processing-service
+    ports:
+      - "8005:8005"
+    environment:
+      - SERVICE_NAME=image-processing-service
+      - SERVICE_VERSION=1.0.0
+      - PORT=8005
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=production
+      - STORAGE_SERVICE_URL=http://storage-service:8002
+      - TEMP_DIR=/app/temp
+      - UPLOAD_DIR=/app/uploads
+      - MAX_CONCURRENT_TASKS=10
+      - TASK_TIMEOUT=300
+      - OPENCV_THREAD_COUNT=4
+      - TORCH_DEVICE=cpu
+    volumes:
+      - image_temp:/app/temp
+      - image_uploads:/app/uploads
+      - ./logs:/app/logs
+    networks:
+      - historical-text-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8005/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - storage-service
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+# Redis缓存已移除 - 通过storage-service统一管理缓存
+# 保持无状态架构一致性
+
+  # 存储服务（依赖）
+  storage-service:
+    image: storage-service:latest
+    container_name: storage-service
+    ports:
+      - "8002:8002"
+    networks:
+      - historical-text-network
+    restart: unless-stopped
+
+volumes:
+  image_temp:
+    driver: local
+  image_uploads:
+    driver: local
+  # image_redis_data 已移除 - 使用统一Redis服务
+
+networks:
+  historical-text-network:
+    external: true
+    driver: bridge

@@ -1,0 +1,35 @@
+# FastAPI和Web服务依赖（核心）
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+httpx==0.25.2
+aiofiles==23.2.1
+
+# 数据验证（轻量级）
+pydantic==2.5.0
+pydantic-settings==2.0.3
+
+# OCR引擎依赖（核心功能）
+paddlepaddle==2.5.2
+paddleocr==2.7.3
+pytesseract==0.3.10
+easyocr==1.7.0
+
+# 图像处理依赖（必需）
+opencv-python==4.8.1.78
+Pillow==10.1.0
+scikit-image==0.22.0
+numpy==1.24.4
+
+# 文本处理依赖（核心）
+jieba==0.42.1
+opencc-python-reimplemented==0.1.7
+
+# 基础工具库
+python-dotenv==1.0.0
+
+# 开发和测试依赖（可选）
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==23.11.0
+isort==5.12.0

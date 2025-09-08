@@ -1,0 +1,77 @@
+# Git相关
+.git/
+.gitignore
+.gitattributes
+
+# Python相关
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# IDE相关
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统相关
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 日志文件
+*.log
+logs/
+*.out
+
+# 临时文件
+temp/
+tmp/
+uploads/
+*.tmp
+*.temp
+
+# 文档
+README.md
+docs/
+*.md
+
+# 测试文件
+tests/
+test_*/
+*_test.py
+
+# 环境配置
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Docker相关
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# 构建产物
+build/
+dist/
+*.egg-info/

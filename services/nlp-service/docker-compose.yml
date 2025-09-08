@@ -1,0 +1,169 @@
+# NLP服务Docker Compose配置
+# 无状态NLP文本处理微服务部署配置
+# 数据存储通过外部storage-service完成
+
+version: '3.8'
+
+services:
+  # NLP服务（无状态架构）
+  nlp-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nlp-service
+    environment:
+      # 服务配置
+      NLP_SERVICE_NAME: nlp-service
+      NLP_SERVICE_VERSION: "1.0.0"
+      NLP_SERVICE_ENVIRONMENT: development
+      NLP_SERVICE_DEBUG: "false"
+      NLP_SERVICE_API_HOST: 0.0.0.0
+      NLP_SERVICE_API_PORT: 8004
+      NLP_SERVICE_API_PREFIX: /api/v1
+      NLP_SERVICE_WORKERS: 1
+      
+      # Storage Service配置（外部依赖）
+      NLP_SERVICE_STORAGE_SERVICE_URL: http://storage-service:8002
+      NLP_SERVICE_STORAGE_SERVICE_TIMEOUT: 60
+      NLP_SERVICE_STORAGE_SERVICE_RETRIES: 3
+      
+      # File Processor配置（可选）
+      NLP_SERVICE_FILE_PROCESSOR_URL: http://file-processor:8001
+      
+      # OCR Service配置（可选）
+      NLP_SERVICE_OCR_SERVICE_URL: http://ocr-service:8003
+      
+      # NLP引擎配置
+      NLP_SERVICE_DEFAULT_NLP_ENGINE: spacy
+      NLP_SERVICE_DEFAULT_LANGUAGE: zh
+      NLP_SERVICE_SUPPORTED_LANGUAGES: "zh,en,zh-classical"
+      NLP_SERVICE_MAX_TEXT_LENGTH: 1000000
+      NLP_SERVICE_MAX_BATCH_SIZE: 50
+      NLP_SERVICE_NLP_TASK_TIMEOUT: 300
+      NLP_SERVICE_MAX_CONCURRENT_TASKS: 4
+      
+      # NLP功能开关
+      NLP_SERVICE_ENABLE_SEGMENTATION: "true"
+      NLP_SERVICE_ENABLE_POS_TAGGING: "true"
+      NLP_SERVICE_ENABLE_NER: "true"
+      NLP_SERVICE_ENABLE_SENTIMENT_ANALYSIS: "true"
+      NLP_SERVICE_ENABLE_KEYWORD_EXTRACTION: "true"
+      NLP_SERVICE_ENABLE_TEXT_SUMMARIZATION: "true"
+      NLP_SERVICE_ENABLE_TEXT_SIMILARITY: "true"
+      
+      # 模型配置
+      NLP_SERVICE_SPACY_MODEL: zh_core_web_sm
+      NLP_SERVICE_HANLP_TOKENIZER_MODEL: FINE_ELECTRA_SMALL_ZH
+      NLP_SERVICE_HANLP_NER_MODEL: MSRA_NER_ELECTRA_SMALL_ZH
+      NLP_SERVICE_SENTIMENT_MODEL: "uer/roberta-base-finetuned-chinanews-chinese"
+      NLP_SERVICE_SENTENCE_MODEL: "shibing624/text2vec-base-chinese"
+      
+      # 分词配置
+      NLP_SERVICE_JIEBA_ENABLE_PARALLEL: "true"
+      NLP_SERVICE_JIEBA_PARALLEL_WORKERS: 4
+      
+      # 关键词提取配置
+      NLP_SERVICE_KEYWORD_EXTRACTION_METHODS: "tfidf,textrank,yake"
+      NLP_SERVICE_DEFAULT_KEYWORD_METHOD: textrank
+      NLP_SERVICE_MAX_KEYWORDS_COUNT: 50
+      
+      # 摘要生成配置
+      NLP_SERVICE_SUMMARY_METHODS: "extractive,abstractive"
+      NLP_SERVICE_DEFAULT_SUMMARY_METHOD: extractive
+      NLP_SERVICE_MAX_SUMMARY_SENTENCES: 5
+      NLP_SERVICE_SUMMARY_COMPRESSION_RATIO: "0.3"
+      
+      # 临时文件配置
+      NLP_SERVICE_TEMP_DIR: /app/temp
+      NLP_SERVICE_TEMP_FILE_CLEANUP_INTERVAL: 3600
+      NLP_SERVICE_TEMP_FILE_MAX_AGE: 7200
+      
+      # 缓存配置
+      NLP_SERVICE_ENABLE_CACHE: "true"
+      NLP_SERVICE_CACHE_MAX_SIZE: 1000
+      NLP_SERVICE_CACHE_TTL: 3600
+      
+      # 日志配置
+      NLP_SERVICE_LOG_LEVEL: INFO
+      NLP_SERVICE_LOG_FORMAT: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+      NLP_SERVICE_ENABLE_JSON_LOGS: "false"
+      
+      # GPU配置
+      NLP_SERVICE_USE_GPU: "false"
+      NLP_SERVICE_GPU_DEVICE: 0
+    
+    ports:
+      - "8004:8004"
+    
+    volumes:
+      - ./temp:/app/temp  # 临时文件目录
+      - ./models:/app/models  # NLP模型缓存
+      - ./dictionaries:/app/dictionaries  # 自定义词典
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s  # NLP模型加载需要时间
+    
+    networks:
+      - historical-text-network
+    
+    restart: unless-stopped
+    
+    # 资源限制（NLP计算密集型，需要更多资源）
+    deploy:
+      resources:
+        limits:
+          memory: 6G  # NLP模型需要较多内存
+          cpus: '4'   # 支持并发处理
+        reservations:
+          memory: 3G
+          cpus: '2'
+    
+    # 依赖关系（等待存储服务启动）
+    depends_on:
+      - storage-service-check
+    
+  # Storage Service健康检查服务
+  storage-service-check:
+    image: curlimages/curl:latest
+    container_name: nlp-storage-check
+    command: >
+      sh -c '
+        echo "等待storage-service启动..."
+        until curl -f http://storage-service:8002/health; do
+          echo "storage-service未就绪，等待5秒..."
+          sleep 5
+        done
+        echo "storage-service已就绪！"
+      '
+    networks:
+      - historical-text-network
+    depends_on:
+      - storage-service
+
+  # 外部Storage Service（实际部署中应该是外部服务）
+  storage-service:
+    image: storage-service:latest
+    container_name: storage-service
+    ports:
+      - "8002:8002"
+    networks:
+      - historical-text-network
+    # 这里只是示例，实际部署时storage-service应该是独立部署的
+
+# 网络配置（连接到外部网络）
+networks:
+  historical-text-network:
+    external: true
+
+# 仅需临时文件和模型缓存卷
+volumes:
+  temp_data:
+    driver: local
+  models_cache:
+    driver: local
+  dictionaries_data:
+    driver: local

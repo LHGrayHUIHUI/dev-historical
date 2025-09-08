@@ -158,7 +158,14 @@ Historical Text Project/
 
 ### 核心文档
 
-1. **[📊 开发仪表板](DEVELOPMENT_DASHBOARD.md)** ⭐
+1. **[📖 Claude Code 指南](CLAUDE.md)** ⭐ 🆕
+   - Claude Code 操作和开发指南
+   - 项目架构深度解析
+   - 微服务交互模式和数据库策略
+   - 开发环境配置和常用命令
+   - BMAD框架集成使用说明
+
+2. **[📊 开发仪表板](DEVELOPMENT_DASHBOARD.md)** ⭐
    - 项目总体进度和开发状态
    - BMAD代理团队工作状态
    - Epic和Story进度条可视化

@@ -1,0 +1,111 @@
+# Docker构建忽略文件
+
+# Python相关
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 虚拟环境
+venv/
+env/
+ENV/
+
+# IDE和编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 日志文件
+*.log
+logs/
+*.out
+
+# 临时文件
+temp/
+tmp/
+*.tmp
+*.temp
+
+# 测试覆盖率
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# 数据库文件
+*.db
+*.sqlite3
+
+# 模型文件（太大）
+models/
+*.pth
+*.pkl
+*.joblib
+
+# 数据文件
+data/
+*.csv
+*.json
+*.xml
+
+# Git
+.git/
+.gitignore
+
+# Docker相关
+.dockerignore
+Dockerfile*
+docker-compose*.yml
+
+# 文档
+README.md
+docs/
+*.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# 其他
+node_modules/
+.sass-cache/

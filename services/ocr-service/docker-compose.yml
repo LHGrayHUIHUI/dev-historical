@@ -1,0 +1,91 @@
+# OCR服务Docker Compose配置
+# 无状态OCR文本识别微服务部署配置
+# 数据存储通过外部storage-service完成
+
+version: '3.8'
+
+services:
+  # OCR服务（无状态架构）
+  ocr-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ocr-service
+    environment:
+      # 服务配置
+      OCR_SERVICE_NAME: ocr-service
+      OCR_SERVICE_VERSION: "2.0.0"
+      OCR_ENVIRONMENT: development
+      OCR_DEBUG: "false"
+      OCR_API_HOST: 0.0.0.0
+      OCR_API_PORT: 8003
+      OCR_API_PREFIX: /api/v1
+      OCR_WORKERS: 1
+      
+      # Storage Service配置（外部依赖）
+      OCR_SERVICE_STORAGE_SERVICE_URL: http://storage-service:8002
+      OCR_SERVICE_STORAGE_SERVICE_TIMEOUT: 30
+      OCR_SERVICE_STORAGE_SERVICE_RETRIES: 3
+      
+      # File Processor配置（可选）
+      OCR_SERVICE_FILE_PROCESSOR_URL: http://file-processor:8001
+      
+      # OCR引擎配置
+      OCR_DEFAULT_ENGINE: paddleocr
+      OCR_DEFAULT_CONFIDENCE_THRESHOLD: "0.8"
+      OCR_DEFAULT_LANGUAGE_CODES: "zh,en"
+      OCR_MAX_FILE_SIZE: 52428800  # 50MB
+      OCR_MAX_BATCH_SIZE: 20
+      OCR_SUPPORTED_IMAGE_FORMATS: "jpg,jpeg,png,bmp,tiff,webp"
+      OCR_MAX_CONCURRENT_TASKS: 4
+      OCR_TASK_TIMEOUT: 300
+      OCR_ENABLE_PREPROCESSING: "true"
+      OCR_ENABLE_POSTPROCESSING: "true"
+      
+      # 临时文件配置
+      OCR_TEMP_DIR: /app/temp
+      OCR_TEMP_FILE_CLEANUP_INTERVAL: 3600
+      OCR_TEMP_FILE_MAX_AGE: 7200
+      
+      # 日志配置
+      OCR_LOG_LEVEL: INFO
+      OCR_LOG_FORMAT: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+      OCR_ENABLE_JSON_LOGS: "false"
+    
+    ports:
+      - "8003:8003"
+    
+    volumes:
+      - ./temp:/app/temp  # 仅需临时文件目录
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s  # OCR模型加载需要时间
+    
+    networks:
+      - historical-text-network
+    
+    restart: unless-stopped
+    
+    # 资源限制（OCR计算密集型）
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2'
+        reservations:
+          memory: 2G
+          cpus: '1'
+
+# 网络配置（连接到外部网络）
+networks:
+  historical-text-network:
+    external: true
+
+# 仅需临时文件卷
+volumes:
+  temp_data:
+    driver: local
