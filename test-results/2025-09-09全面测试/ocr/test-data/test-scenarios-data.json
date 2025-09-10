@@ -1,0 +1,204 @@
+{
+  "ocr_test_scenarios": {
+    "format_validation": {
+      "valid_formats": {
+        "jpg": {
+          "content_type": "image/jpeg",
+          "test_files": ["sample_text.jpg", "chinese_document.jpg", "handwritten_note.jpg"],
+          "expected_behavior": "accept"
+        },
+        "png": {
+          "content_type": "image/png", 
+          "test_files": ["digital_document.png", "screenshot_text.png", "scanned_page.png"],
+          "expected_behavior": "accept"
+        },
+        "gif": {
+          "content_type": "image/gif",
+          "test_files": ["animated_text.gif"],
+          "expected_behavior": "accept"
+        }
+      },
+      "invalid_formats": {
+        "pdf": {
+          "content_type": "application/pdf",
+          "test_files": ["document.pdf"],
+          "expected_behavior": "reject_400"
+        },
+        "txt": {
+          "content_type": "text/plain",
+          "test_files": ["text.txt"],
+          "expected_behavior": "reject_400"
+        },
+        "docx": {
+          "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "test_files": ["document.docx"],
+          "expected_behavior": "reject_400"
+        }
+      }
+    },
+    "file_size_validation": {
+      "valid_sizes": [
+        {"size_bytes": 1024, "description": "1KB - 最小有效文件"},
+        {"size_bytes": 1048576, "description": "1MB - 中等大小文件"},
+        {"size_bytes": 10485760, "description": "10MB - 大文件但在限制内"}
+      ],
+      "invalid_sizes": [
+        {"size_bytes": 104857600, "description": "100MB - 超出限制", "expected_behavior": "reject_413"},
+        {"size_bytes": 0, "description": "空文件", "expected_behavior": "reject_400"}
+      ]
+    },
+    "confidence_threshold_tests": {
+      "valid_thresholds": [0.0, 0.1, 0.5, 0.8, 0.9, 1.0],
+      "invalid_thresholds": [-0.1, 1.1, "invalid", null],
+      "boundary_tests": [
+        {"threshold": 0.0, "description": "最小边界值"},
+        {"threshold": 1.0, "description": "最大边界值"}
+      ]
+    },
+    "language_codes_tests": {
+      "valid_codes": [
+        {"codes": "zh", "description": "单一中文"},
+        {"codes": "en", "description": "单一英文"}, 
+        {"codes": "zh,en", "description": "中英双语"},
+        {"codes": "zh,en,ja", "description": "多语言支持"},
+        {"codes": "zh, en", "description": "带空格的格式"}
+      ],
+      "invalid_codes": [
+        {"codes": "", "description": "空字符串"},
+        {"codes": "invalid_lang", "description": "不支持的语言"},
+        {"codes": "zh,,en", "description": "空代码段"},
+        {"codes": null, "description": "空值"}
+      ]
+    },
+    "ocr_engines_tests": {
+      "supported_engines": [
+        {"engine": "paddleocr", "description": "默认PaddleOCR引擎", "priority": "high"},
+        {"engine": "tesseract", "description": "Tesseract OCR引擎", "priority": "medium"},
+        {"engine": "easyocr", "description": "EasyOCR引擎", "priority": "medium"}
+      ],
+      "unsupported_engines": [
+        {"engine": "unknown_engine", "expected_behavior": "reject_400"},
+        {"engine": "", "expected_behavior": "reject_400"},
+        {"engine": null, "expected_behavior": "reject_400"}
+      ]
+    },
+    "text_quality_scenarios": {
+      "high_quality": {
+        "description": "高质量清晰文本图像",
+        "expected_confidence": ">= 0.9",
+        "test_images": [
+          "printed_book_page.jpg",
+          "digital_document_screenshot.png", 
+          "high_dpi_scan.jpg"
+        ]
+      },
+      "medium_quality": {
+        "description": "中等质量文本图像",
+        "expected_confidence": ">= 0.7",
+        "test_images": [
+          "phone_photo_document.jpg",
+          "normal_scan.png",
+          "slightly_blurry_text.jpg"
+        ]
+      },
+      "low_quality": {
+        "description": "低质量或困难文本图像",
+        "expected_confidence": ">= 0.5",
+        "test_images": [
+          "handwritten_notes.jpg",
+          "faded_old_document.png",
+          "skewed_document.jpg"
+        ]
+      }
+    },
+    "multilingual_scenarios": {
+      "chinese_text": {
+        "language": "zh",
+        "test_images": ["chinese_book.jpg", "chinese_newspaper.png"],
+        "expected_features": ["simplified_chinese", "traditional_chinese"]
+      },
+      "english_text": {
+        "language": "en", 
+        "test_images": ["english_document.jpg", "english_book.png"],
+        "expected_features": ["latin_alphabet", "numbers", "punctuation"]
+      },
+      "mixed_language": {
+        "language": "zh,en",
+        "test_images": ["bilingual_document.jpg", "mixed_text.png"],
+        "expected_features": ["chinese_characters", "english_words"]
+      }
+    },
+    "special_character_scenarios": {
+      "punctuation": {
+        "test_images": ["punctuation_heavy.jpg"],
+        "expected_chars": [".", ",", "!", "?", ":", ";", "'", "\""]
+      },
+      "numbers": {
+        "test_images": ["financial_document.jpg", "table_with_numbers.png"], 
+        "expected_chars": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+      },
+      "symbols": {
+        "test_images": ["technical_document.jpg"],
+        "expected_chars": ["@", "#", "$", "%", "&", "*", "+", "-", "="]
+      }
+    },
+    "edge_cases": {
+      "empty_image": {
+        "description": "空白或纯色图像",
+        "test_images": ["white_background.jpg", "empty_page.png"],
+        "expected_behavior": "empty_result_or_low_confidence"
+      },
+      "no_text_image": {
+        "description": "无文字的图像",
+        "test_images": ["landscape_photo.jpg", "abstract_image.png"],
+        "expected_behavior": "empty_text_result"
+      },
+      "corrupted_image": {
+        "description": "损坏的图像文件",
+        "test_images": ["corrupted.jpg"],
+        "expected_behavior": "processing_error"
+      }
+    },
+    "performance_benchmarks": {
+      "processing_time_targets": {
+        "small_image": {"size": "< 1MB", "target_time": "< 3s"},
+        "medium_image": {"size": "1-5MB", "target_time": "< 10s"},
+        "large_image": {"size": "5-10MB", "target_time": "< 30s"}
+      },
+      "batch_processing": {
+        "small_batch": {"images": 5, "target_time": "< 15s"},
+        "medium_batch": {"images": 10, "target_time": "< 60s"},
+        "large_batch": {"images": 20, "target_time": "< 300s"}
+      }
+    }
+  },
+  "api_endpoint_tests": {
+    "recognize_endpoint": {
+      "path": "/ocr/recognize",
+      "method": "POST",
+      "required_params": ["file"],
+      "optional_params": ["engine", "confidence_threshold", "language_codes", "enable_preprocessing", "enable_postprocessing", "async_mode"]
+    },
+    "batch_endpoint": {
+      "path": "/ocr/batch", 
+      "method": "POST",
+      "required_params": ["files"],
+      "optional_params": ["engine", "confidence_threshold", "language_codes", "enable_preprocessing", "enable_postprocessing"]
+    },
+    "task_status_endpoint": {
+      "path": "/ocr/task/{task_id}",
+      "method": "GET",
+      "required_params": ["task_id"]
+    },
+    "engines_endpoint": {
+      "path": "/ocr/engines",
+      "method": "GET",
+      "required_params": []
+    },
+    "health_endpoint": {
+      "path": "/ocr/health",
+      "method": "GET", 
+      "required_params": []
+    }
+  }
+}

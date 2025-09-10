@@ -1,0 +1,22 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-7.4.3, pluggy-1.6.0 -- /Library/Developer/CommandLineTools/usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/yjlh/Documents/code/Historical Text Project
+plugins: cov-4.1.0, asyncio-0.21.1, mock-3.12.0, anyio-3.7.1
+asyncio: mode=strict
+collecting ... collected 6 items
+
+services/intelligent-classification-service/tests/unit/test_ml_algorithms.py::TestMLAlgorithms::test_model_creation PASSED [ 16%]
+services/intelligent-classification-service/tests/unit/test_ml_algorithms.py::TestMLAlgorithms::test_model_training PASSED [ 33%]
+services/intelligent-classification-service/tests/unit/test_ml_algorithms.py::TestMLAlgorithms::test_text_classification PASSED [ 50%]
+services/intelligent-classification-service/tests/unit/test_ml_algorithms.py::TestMLAlgorithms::test_classification_with_probabilities PASSED [ 66%]
+services/intelligent-classification-service/tests/unit/test_ml_algorithms.py::TestMLAlgorithms::test_model_error_handling PASSED [ 83%]
+services/intelligent-classification-service/tests/unit/test_ml_algorithms.py::TestMLAlgorithms::test_algorithm_performance_comparison PASSED [100%]
+
+=============================== warnings summary ===============================
+services/intelligent-classification-service/tests/unit/test_ml_algorithms.py::TestMLAlgorithms::test_algorithm_performance_comparison
+  /Users/yjlh/Library/Python/3.9/lib/python/site-packages/_pytest/python.py:198: PytestReturnNotNoneWarning: Expected None, but services/intelligent-classification-service/tests/unit/test_ml_algorithms.py::TestMLAlgorithms::test_algorithm_performance_comparison returned {'svm': {'accuracy': 0.3333333333333333, 'classes_count': 3}, 'random_forest': {'accuracy': 0.3333333333333333, 'classes_count': 3}, 'naive_bayes': {'accuracy': 0.3333333333333333, 'classes_count': 3}}, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 6 passed, 1 warning in 1.28s =========================

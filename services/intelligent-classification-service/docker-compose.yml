@@ -1,0 +1,135 @@
+# 智能分类服务Docker Compose配置
+# 包含服务及其依赖的完整部署配置
+
+version: '3.8'
+
+services:
+  intelligent-classification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: intelligent-classification-service
+    restart: unless-stopped
+    ports:
+      - "8007:8007"
+    environment:
+      # 基础配置
+      - SERVICE_NAME=intelligent-classification-service
+      - SERVICE_VERSION=1.0.0
+      - ENVIRONMENT=development
+      - DEBUG=true
+      
+      # API配置
+      - API_HOST=0.0.0.0
+      - API_PORT=8007
+      - API_PREFIX=/api/v1
+      
+      # Storage Service配置
+      - STORAGE_SERVICE_URL=http://storage-service:8002
+      - STORAGE_SERVICE_TIMEOUT=180
+      - STORAGE_SERVICE_RETRIES=3
+      
+      # 其他服务配置
+      - NLP_SERVICE_URL=http://nlp-service:8004
+      - KNOWLEDGE_GRAPH_SERVICE_URL=http://knowledge-graph-service:8006
+      
+      # 智能分类配置
+      - MAX_TEXT_LENGTH=10000
+      - MAX_BATCH_SIZE=100
+      - CLASSIFICATION_TIMEOUT=300
+      - MAX_CONCURRENT_TASKS=5
+      
+      # 模型配置
+      - TEMP_DIR=/tmp/intelligent-classification
+      - MODEL_DIR=/tmp/models
+      - CACHE_DIR=/tmp/cache
+      - MAX_MODEL_SIZE=524288000  # 500MB
+      
+      # 缓存配置
+      - ENABLE_CACHE=true
+      - CACHE_MAX_SIZE=1000
+      - CACHE_TTL=3600
+      
+      # 日志配置
+      - LOG_LEVEL=INFO
+      - LOG_FILE=/app/logs/intelligent_classification_service.log
+      
+      # MLflow配置
+      - MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+      - MLFLOW_EXPERIMENT_NAME=intelligent-classification
+      - MLFLOW_ENABLED=true
+      
+      # 性能监控
+      - ENABLE_PERFORMANCE_MONITORING=true
+      - PERFORMANCE_LOG_INTERVAL=300
+      
+    volumes:
+      # 日志持久化
+      - ./logs:/app/logs
+      # 模型存储
+      - ./models:/tmp/models
+      # 缓存存储
+      - ./cache:/tmp/cache
+      # MLflow数据
+      - ./mlflow:/app/mlflow
+      
+    networks:
+      - historical-text-network
+      
+    depends_on:
+      - storage-service
+      
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+          
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.intelligent-classification.rule=PathPrefix(`/api/v1/classification`)"
+      - "traefik.http.services.intelligent-classification.loadbalancer.server.port=8007"
+      - "traefik.docker.network=historical-text-network"
+
+  # Storage Service依赖（如果需要本地启动）
+  storage-service:
+    image: storage-service:latest
+    container_name: storage-service
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    environment:
+      - SERVICE_NAME=storage-service
+      - ENVIRONMENT=development
+      - DEBUG=true
+    networks:
+      - historical-text-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  historical-text-network:
+    external: true
+
+volumes:
+  intelligent-classification-logs:
+    driver: local
+  intelligent-classification-models:
+    driver: local
+  intelligent-classification-cache:
+    driver: local
+  intelligent-classification-mlflow:
+    driver: local

@@ -1,0 +1,250 @@
+{
+  "start_time": "2025-09-09T08:38:14.597391",
+  "test_type": "simplified_docker_integration",
+  "services_tested": [
+    "file-processor:8001",
+    "storage-service:8002"
+  ],
+  "tests": [
+    {
+      "name": "文件处理服务_comprehensive_check",
+      "status": "PASSED",
+      "duration": 0.014342069625854492,
+      "details": {
+        "health_data": {
+          "success": true,
+          "data": {
+            "status": "healthy",
+            "timestamp": "2025-09-09T00:38:14.607513",
+            "service": {
+              "name": "data-source-service",
+              "version": "1.0.0",
+              "environment": "testing"
+            },
+            "components": {
+              "processors": {
+                "status": "ready",
+                "available_processors": [
+                  "pdf",
+                  "word",
+                  "image",
+                  "html"
+                ]
+              }
+            },
+            "issues": []
+          },
+          "message": "文件处理服务状态: healthy"
+        },
+        "service_info": {
+          "success": true,
+          "data": {
+            "service": {
+              "name": "data-source-service",
+              "version": "1.0.0",
+              "environment": "testing",
+              "host": "0.0.0.0",
+              "port": 8000,
+              "type": "file-processor",
+              "description": "纯文件处理服务，专注文件处理算法"
+            },
+            "capabilities": {
+              "document_formats": [
+                {
+                  "extension": "pdf",
+                  "description": "PDF文档",
+                  "features": [
+                    "文本提取",
+                    "元数据提取"
+                  ]
+                },
+                {
+                  "extension": "docx",
+                  "description": "Word文档",
+                  "features": [
+                    "文本提取"
+                  ]
+                },
+                {
+                  "extension": "html",
+                  "description": "HTML文档",
+                  "features": [
+                    "文本提取",
+                    "结构化解析"
+                  ]
+                }
+              ],
+              "image_formats": [
+                {
+                  "extension": "jpg",
+                  "description": "JPEG图片",
+                  "features": [
+                    "OCR文字识别"
+                  ]
+                },
+                {
+                  "extension": "png",
+                  "description": "PNG图片",
+                  "features": [
+                    "OCR文字识别"
+                  ]
+                },
+                {
+                  "extension": "gif",
+                  "description": "GIF图片",
+                  "features": [
+                    "OCR文字识别"
+                  ]
+                }
+              ],
+              "processing_features": {
+                "async_processing": true,
+                "batch_processing": true,
+                "status_tracking": true,
+                "error_handling": true,
+                "file_validation": true
+              }
+            },
+            "architecture": {
+              "database_dependencies": false,
+              "stateless_design": true,
+              "storage_service_integration": true,
+              "microservice_type": "pure_processing"
+            },
+            "api": {
+              "prefix": "/api/v1",
+              "docs": "/docs",
+              "openapi": "/openapi.json",
+              "endpoints": {
+                "pdf_processing": "/api/v1/process/pdf",
+                "image_ocr": "/api/v1/process/image-ocr",
+                "document_processing": "/api/v1/process/document",
+                "batch_processing": "/api/v1/process/batch",
+                "status_check": "/api/v1/process/status/{task_id}"
+              }
+            }
+          },
+          "message": "文件处理服务信息获取成功"
+        },
+        "api_endpoints": [
+          "/api/v1/process/pdf",
+          "/api/v1/process/image-ocr",
+          "/api/v1/process/document",
+          "/api/v1/process/status/{task_id}",
+          "/api/v1/process/supported-formats",
+          "/api/v1/process/batch",
+          "/api/v1/process/task/{task_id}",
+          "/",
+          "/health",
+          "/info"
+        ],
+        "response_time": 0.014342069625854492
+      },
+      "error": null,
+      "timestamp": "2025-09-09T08:38:14.611770"
+    },
+    {
+      "name": "存储服务_comprehensive_check",
+      "status": "PASSED",
+      "duration": 0.009843826293945312,
+      "details": {
+        "health_data": {
+          "status": "healthy",
+          "service": "storage-service",
+          "version": "1.0.0",
+          "timestamp": 1757378294.6164484
+        },
+        "service_info": null,
+        "api_endpoints": [
+          "/health",
+          "/ready",
+          "/api/v1/data/upload",
+          "/api/v1/data/upload/batch",
+          "/api/v1/data/datasets",
+          "/api/v1/data/datasets/{dataset_id}",
+          "/api/v1/data/datasets/{dataset_id}/processing-status",
+          "/api/v1/data/datasets/{dataset_id}/reprocess",
+          "/api/v1/data/health",
+          "/api/v1/data/info",
+          "/api/v1/content/",
+          "/api/v1/content/with-files",
+          "/api/v1/content/{content_id}",
+          "/api/v1/content/search/",
+          "/api/v1/content/stats/"
+        ],
+        "response_time": 0.009843826293945312
+      },
+      "error": null,
+      "timestamp": "2025-09-09T08:38:14.621722"
+    },
+    {
+      "name": "file_processor_functionality_test",
+      "status": "PASSED",
+      "duration": 0.013441085815429688,
+      "details": {
+        "status_available": false,
+        "status_data": null,
+        "capabilities_available": false,
+        "capabilities_data": null,
+        "processing_success": true,
+        "processing_result": {
+          "success": true,
+          "task_id": "dfe94897-76a3-4ed2-a2df-7aaf6628a67d",
+          "status": "completed",
+          "result": {
+            "filename": "test_document.txt",
+            "file_type": "txt",
+            "size": 75,
+            "text_content": "这是从TXT文档提取的内容...",
+            "metadata": {
+              "format": "txt",
+              "processed_at": "2025-09-09T00:38:14.633951"
+            },
+            "processing_time": 1.8
+          },
+          "error": null,
+          "timestamp": "2025-09-09T00:38:14.633960"
+        },
+        "response_time": 0.013441085815429688
+      },
+      "error": null,
+      "timestamp": "2025-09-09T08:38:14.635325"
+    },
+    {
+      "name": "storage_service_functionality_test",
+      "status": "PASSED",
+      "duration": 0.0077440738677978516,
+      "details": {
+        "system_available": false,
+        "system_data": null,
+        "database_available": false,
+        "database_data": null,
+        "data_operations_success": true,
+        "response_time": 0.0077440738677978516
+      },
+      "error": null,
+      "timestamp": "2025-09-09T08:38:14.643152"
+    },
+    {
+      "name": "service_communication_test",
+      "status": "PASSED",
+      "duration": 0.01032114028930664,
+      "details": {
+        "storage_to_file_processor": true,
+        "bidirectional_communication": true,
+        "response_time": 0.01032114028930664
+      },
+      "error": null,
+      "timestamp": "2025-09-09T08:38:14.653546"
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "errors": [],
+    "success_rate": 100.0
+  },
+  "end_time": "2025-09-09T08:38:14.653679",
+  "total_duration": 0.055692195892333984
+}

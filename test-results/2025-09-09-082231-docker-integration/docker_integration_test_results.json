@@ -1,0 +1,117 @@
+{
+  "start_time": "2025-09-09T08:24:20.892516",
+  "test_type": "docker_integration",
+  "services_tested": [
+    "file-processor:8001",
+    "storage-service:8002",
+    "intelligent-classification-service:8007"
+  ],
+  "tests": [
+    {
+      "name": "文件处理服务_health_check",
+      "status": "PASSED",
+      "duration": 0.018236875534057617,
+      "details": {
+        "health_data": {
+          "success": true,
+          "data": {
+            "status": "healthy",
+            "timestamp": "2025-09-09T00:24:20.908322",
+            "service": {
+              "name": "data-source-service",
+              "version": "1.0.0",
+              "environment": "testing"
+            },
+            "components": {
+              "processors": {
+                "status": "ready",
+                "available_processors": [
+                  "pdf",
+                  "word",
+                  "image",
+                  "html"
+                ]
+              }
+            },
+            "issues": []
+          },
+          "message": "文件处理服务状态: healthy"
+        },
+        "response_time": 0.018236875534057617
+      },
+      "error": null,
+      "timestamp": "2025-09-09T08:24:20.910770"
+    },
+    {
+      "name": "存储服务_health_check",
+      "status": "PASSED",
+      "duration": 0.007230043411254883,
+      "details": {
+        "health_data": {
+          "status": "healthy",
+          "service": "storage-service",
+          "version": "1.0.0",
+          "timestamp": 1757377460.9161954
+        },
+        "response_time": 0.007230043411254883
+      },
+      "error": null,
+      "timestamp": "2025-09-09T08:24:20.918075"
+    },
+    {
+      "name": "智能分类服务_health_check",
+      "status": "FAILED",
+      "duration": 0.0046520233154296875,
+      "details": {},
+      "error": "智能分类服务健康检查异常: All connection attempts failed",
+      "timestamp": "2025-09-09T08:24:20.922799"
+    },
+    {
+      "name": "file_processor_upload_and_process",
+      "status": "FAILED",
+      "duration": 0.007974863052368164,
+      "details": {},
+      "error": "文件处理失败，状态码: 404",
+      "timestamp": "2025-09-09T08:24:20.931450"
+    },
+    {
+      "name": "storage_service_create_and_retrieve",
+      "status": "FAILED",
+      "duration": 0.0072689056396484375,
+      "details": {},
+      "error": "存储服务测试失败，无法获取内容ID",
+      "timestamp": "2025-09-09T08:24:20.938786"
+    },
+    {
+      "name": "intelligent_classification_service_test",
+      "status": "FAILED",
+      "duration": 0.006254911422729492,
+      "details": {},
+      "error": "智能分类服务测试异常: All connection attempts failed",
+      "timestamp": "2025-09-09T08:24:20.945098"
+    },
+    {
+      "name": "service_integration_end_to_end",
+      "status": "FAILED",
+      "duration": 0.008383035659790039,
+      "details": {},
+      "error": "服务集成测试失败，流程中断",
+      "timestamp": "2025-09-09T08:24:20.954305"
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "passed": 2,
+    "failed": 5,
+    "errors": [
+      "智能分类服务健康检查异常: All connection attempts failed",
+      "文件处理失败，状态码: 404",
+      "存储服务测试失败，无法获取内容ID",
+      "智能分类服务测试异常: All connection attempts failed",
+      "服务集成测试失败，流程中断"
+    ],
+    "success_rate": 28.57142857142857
+  },
+  "end_time": "2025-09-09T08:24:20.954361",
+  "total_duration": 0.06000065803527832
+}

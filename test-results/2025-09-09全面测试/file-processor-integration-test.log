@@ -1,0 +1,615 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-7.4.3, pluggy-1.6.0 -- /Library/Developer/CommandLineTools/usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/yjlh/Documents/code/Historical Text Project
+plugins: cov-4.1.0, asyncio-0.21.1, mock-3.12.0, anyio-3.7.1
+asyncio: mode=strict
+collecting ... collected 27 items
+
+services/file-processor/tests/integration/test_api.py::TestCrawlerAPI::test_create_crawler_task ERROR [  3%]
+services/file-processor/tests/integration/test_api.py::TestCrawlerAPI::test_create_invalid_crawler_task FAILED [  7%]
+services/file-processor/tests/integration/test_api.py::TestCrawlerAPI::test_start_crawler_task ERROR [ 11%]
+services/file-processor/tests/integration/test_api.py::TestCrawlerAPI::test_start_nonexistent_task ERROR [ 14%]
+services/file-processor/tests/integration/test_api.py::TestCrawlerAPI::test_get_task_status ERROR [ 18%]
+services/file-processor/tests/integration/test_api.py::TestCrawlerAPI::test_get_all_tasks ERROR [ 22%]
+services/file-processor/tests/integration/test_api.py::TestCrawlerAPI::test_get_crawler_statistics ERROR [ 25%]
+services/file-processor/tests/integration/test_api.py::TestContentAPI::test_create_content ERROR [ 29%]
+services/file-processor/tests/integration/test_api.py::TestContentAPI::test_create_duplicate_content ERROR [ 33%]
+services/file-processor/tests/integration/test_api.py::TestContentAPI::test_batch_create_content ERROR [ 37%]
+services/file-processor/tests/integration/test_api.py::TestContentAPI::test_get_content_list ERROR [ 40%]
+services/file-processor/tests/integration/test_api.py::TestContentAPI::test_get_content_detail ERROR [ 44%]
+services/file-processor/tests/integration/test_api.py::TestContentAPI::test_get_nonexistent_content ERROR [ 48%]
+services/file-processor/tests/integration/test_api.py::TestContentAPI::test_update_content ERROR [ 51%]
+services/file-processor/tests/integration/test_api.py::TestContentAPI::test_delete_content ERROR [ 55%]
+services/file-processor/tests/integration/test_api.py::TestProxyAPI::test_get_proxy_list ERROR [ 59%]
+services/file-processor/tests/integration/test_api.py::TestProxyAPI::test_get_active_proxies ERROR [ 62%]
+services/file-processor/tests/integration/test_api.py::TestProxyAPI::test_get_best_proxy ERROR [ 66%]
+services/file-processor/tests/integration/test_api.py::TestProxyAPI::test_test_proxy ERROR [ 70%]
+services/file-processor/tests/integration/test_api.py::TestProxyAPI::test_refresh_proxy_list ERROR [ 74%]
+services/file-processor/tests/integration/test_api.py::TestProxyAPI::test_get_proxy_statistics ERROR [ 77%]
+services/file-processor/tests/integration/test_api.py::TestSystemAPI::test_root_endpoint FAILED [ 81%]
+services/file-processor/tests/integration/test_api.py::TestSystemAPI::test_health_check ERROR [ 85%]
+services/file-processor/tests/integration/test_api.py::TestSystemAPI::test_service_info FAILED [ 88%]
+services/file-processor/tests/integration/test_api.py::TestErrorHandling::test_404_error FAILED [ 92%]
+services/file-processor/tests/integration/test_api.py::TestErrorHandling::test_validation_error FAILED [ 96%]
+services/file-processor/tests/integration/test_api.py::TestErrorHandling::test_internal_server_error ERROR [100%]
+
+==================================== ERRORS ====================================
+__________ ERROR at setup of TestCrawlerAPI.test_create_crawler_task ___________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 15
+      @pytest.mark.asyncio
+      async def test_create_crawler_task(self, async_client, sample_crawler_config, assert_response_structure):
+          """测试创建爬虫任务"""
+          response = await async_client.post("/api/v1/crawlers/", json=sample_crawler_config)
+
+          assert response.status_code == 200
+          data = response.json()
+
+          assert_response_structure(data, ["task_id", "platform", "keywords", "status"])
+          assert data["data"]["platform"] == sample_crawler_config["platform"]
+          assert data["data"]["keywords"] == sample_crawler_config["keywords"]
+          assert data["data"]["status"] == "idle"
+E       fixture 'sample_crawler_config' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:15
+___________ ERROR at setup of TestCrawlerAPI.test_start_crawler_task ___________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 40
+      @pytest.mark.asyncio
+      async def test_start_crawler_task(self, async_client, sample_crawler_config, mock_crawler_manager):
+          """测试启动爬虫任务"""
+          # 模拟成功启动
+          mock_crawler_manager.start_task.return_value = True
+
+          # 首先创建任务
+          create_response = await async_client.post("/api/v1/crawlers/", json=sample_crawler_config)
+          task_id = create_response.json()["data"]["task_id"]
+
+          # 启动任务
+          response = await async_client.post(f"/api/v1/crawlers/{task_id}/start")
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          assert data["data"]["task_id"] == task_id
+E       fixture 'sample_crawler_config' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:40
+_________ ERROR at setup of TestCrawlerAPI.test_start_nonexistent_task _________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 58
+      @pytest.mark.asyncio
+      async def test_start_nonexistent_task(self, async_client, mock_crawler_manager):
+          """测试启动不存在的任务"""
+          mock_crawler_manager.start_task.return_value = False
+          mock_crawler_manager.get_task_status.return_value = None
+
+          response = await async_client.post("/api/v1/crawlers/fake-task-id/start")
+          assert response.status_code == 404
+E       fixture 'mock_crawler_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:58
+____________ ERROR at setup of TestCrawlerAPI.test_get_task_status _____________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 67
+      @pytest.mark.asyncio
+      async def test_get_task_status(self, async_client, sample_crawler_config, mock_crawler_manager):
+          """测试获取任务状态"""
+          # 创建模拟任务
+          from src.crawler.crawler_manager import CrawlerTask, CrawlerStatus, CrawlerConfig
+          from src.models.content import ContentSource
+          from datetime import datetime
+
+          mock_task = CrawlerTask(
+              task_id="test-task-123",
+              config=CrawlerConfig(
+                  platform=ContentSource.TOUTIAO,
+                  keywords=["历史", "文化"],
+                  max_pages=5
+              ),
+              status=CrawlerStatus.RUNNING,
+              created_at=datetime.now()
+          )
+          mock_task.progress = 50.0
+          mock_task.success_items = 10
+          mock_task.failed_items = 2
+
+          mock_crawler_manager.get_task_status.return_value = mock_task
+
+          response = await async_client.get("/api/v1/crawlers/test-task-123/status")
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          assert data["data"]["task_id"] == "test-task-123"
+          assert data["data"]["status"] == "running"
+          assert data["data"]["progress"] == 50.0
+          assert data["data"]["success_items"] == 10
+          assert data["data"]["failed_items"] == 2
+E       fixture 'sample_crawler_config' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:67
+_____________ ERROR at setup of TestCrawlerAPI.test_get_all_tasks ______________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 102
+      @pytest.mark.asyncio
+      async def test_get_all_tasks(self, async_client, mock_crawler_manager):
+          """测试获取所有任务"""
+          # 模拟返回空列表
+          mock_crawler_manager.get_all_tasks.return_value = []
+
+          response = await async_client.get("/api/v1/crawlers/")
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          assert "items" in data["data"]
+          assert "total" in data["data"]
+          assert "page" in data["data"]
+          assert "size" in data["data"]
+E       fixture 'mock_crawler_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:102
+_________ ERROR at setup of TestCrawlerAPI.test_get_crawler_statistics _________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 118
+      @pytest.mark.asyncio
+      async def test_get_crawler_statistics(self, async_client, mock_crawler_manager):
+          """测试获取爬虫统计"""
+          mock_stats = {
+              "total_tasks": 10,
+              "running_tasks": 2,
+              "finished_tasks": 7,
+              "error_tasks": 1,
+              "total_success_items": 150,
+              "total_failed_items": 20,
+              "overall_success_rate": 88.2
+          }
+          mock_crawler_manager.get_statistics.return_value = mock_stats
+
+          response = await async_client.get("/api/v1/crawlers/statistics")
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          assert data["data"] == mock_stats
+E       fixture 'mock_crawler_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:118
+_____________ ERROR at setup of TestContentAPI.test_create_content _____________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 143
+      @pytest.mark.asyncio
+      async def test_create_content(self, async_client, sample_content_data, mock_db_manager):
+          """测试创建内容"""
+          # 模拟数据库操作
+          mock_collection = AsyncMock()
+          mock_collection.find_one.return_value = None  # 不存在重复内容
+          mock_collection.insert_one.return_value = AsyncMock(inserted_id="mock_id")
+          mock_db_manager.get_mongodb_collection.return_value = mock_collection
+
+          response = await async_client.post("/api/v1/content/", json=sample_content_data)
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          assert "id" in data["data"]
+          assert data["data"]["title"] == sample_content_data["title"]
+          assert data["data"]["status"] == "pending"
+E       fixture 'mock_db_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:143
+________ ERROR at setup of TestContentAPI.test_create_duplicate_content ________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 161
+      @pytest.mark.asyncio
+      async def test_create_duplicate_content(self, async_client, sample_content_data, mock_db_manager):
+          """测试创建重复内容"""
+          # 模拟数据库找到重复内容
+          mock_collection = AsyncMock()
+          mock_collection.find_one.return_value = {"id": "existing-id"}
+          mock_db_manager.get_mongodb_collection.return_value = mock_collection
+
+          response = await async_client.post("/api/v1/content/", json=sample_content_data)
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is False
+          assert "existing_id" in data["data"]
+E       fixture 'mock_db_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:161
+__________ ERROR at setup of TestContentAPI.test_batch_create_content __________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 176
+      @pytest.mark.asyncio
+      async def test_batch_create_content(self, async_client, mock_data_generator, mock_db_manager):
+          """测试批量创建内容"""
+          contents = mock_data_generator.generate_content_batch(5)
+          batch_data = {
+              "contents": contents,
+              "batch_name": "测试批次",
+              "auto_deduplicate": True
+          }
+
+          # 模拟数据库操作
+          mock_collection = AsyncMock()
+          mock_collection.find_one.return_value = None  # 无重复
+          mock_collection.insert_one.return_value = AsyncMock(inserted_id="mock_id")
+          mock_db_manager.get_mongodb_collection.return_value = mock_collection
+
+          response = await async_client.post("/api/v1/content/batch", json=batch_data)
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          assert data["data"]["total_count"] == 5
+          assert data["data"]["success_count"] > 0
+E       fixture 'mock_db_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:176
+____________ ERROR at setup of TestContentAPI.test_get_content_list ____________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 200
+      @pytest.mark.asyncio
+      async def test_get_content_list(self, async_client, mock_db_manager):
+          """测试获取内容列表"""
+          # 模拟数据库查询结果
+          mock_collection = AsyncMock()
+          mock_collection.count_documents.return_value = 0
+
+          # 模拟游标
+          mock_cursor = AsyncMock()
+          mock_cursor.__aiter__ = AsyncMock(return_value=iter([]))
+          mock_collection.find.return_value.sort.return_value.skip.return_value.limit.return_value = mock_cursor
+
+          mock_db_manager.get_mongodb_collection.return_value = mock_collection
+
+          response = await async_client.get("/api/v1/content/")
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          assert "items" in data["data"]
+          assert "total" in data["data"]
+E       fixture 'mock_db_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:200
+___________ ERROR at setup of TestContentAPI.test_get_content_detail ___________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 222
+      @pytest.mark.asyncio
+      async def test_get_content_detail(self, async_client, mock_db_manager):
+          """测试获取内容详情"""
+          # 模拟找到内容
+          mock_content = {
+              "id": "test-content-123",
+              "title": "测试内容",
+              "content": "这是测试内容的正文",
+              "source": "manual",
+              "status": "completed",
+              "created_at": "2024-01-01T00:00:00"
+          }
+
+          mock_collection = AsyncMock()
+          mock_collection.find_one.return_value = mock_content
+          mock_collection.update_one.return_value = AsyncMock()
+          mock_db_manager.get_mongodb_collection.return_value = mock_collection
+
+          response = await async_client.get("/api/v1/content/test-content-123")
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          assert data["data"]["id"] == "test-content-123"
+          assert data["data"]["title"] == "测试内容"
+E       fixture 'mock_db_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:222
+________ ERROR at setup of TestContentAPI.test_get_nonexistent_content _________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 248
+      @pytest.mark.asyncio
+      async def test_get_nonexistent_content(self, async_client, mock_db_manager):
+          """测试获取不存在的内容"""
+          mock_collection = AsyncMock()
+          mock_collection.find_one.return_value = None
+          mock_db_manager.get_mongodb_collection.return_value = mock_collection
+
+          response = await async_client.get("/api/v1/content/nonexistent-id")
+          assert response.status_code == 404
+E       fixture 'mock_db_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:248
+_____________ ERROR at setup of TestContentAPI.test_update_content _____________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 258
+      @pytest.mark.asyncio
+      async def test_update_content(self, async_client, mock_db_manager):
+          """测试更新内容"""
+          update_data = {
+              "title": "更新后的标题",
+              "category": "新分类"
+          }
+
+          mock_collection = AsyncMock()
+          mock_collection.find_one.return_value = {"id": "test-id"}  # 存在
+          mock_collection.update_one.return_value = AsyncMock(modified_count=1)
+          mock_db_manager.get_mongodb_collection.return_value = mock_collection
+
+          response = await async_client.put("/api/v1/content/test-id", json=update_data)
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          assert data["data"]["id"] == "test-id"
+E       fixture 'mock_db_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:258
+_____________ ERROR at setup of TestContentAPI.test_delete_content _____________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 278
+      @pytest.mark.asyncio
+      async def test_delete_content(self, async_client, mock_db_manager):
+          """测试删除内容"""
+          mock_collection = AsyncMock()
+          mock_collection.find_one.return_value = {"id": "test-id", "title": "测试内容"}
+          mock_collection.delete_one.return_value = AsyncMock(deleted_count=1)
+          mock_db_manager.get_mongodb_collection.return_value = mock_collection
+
+          response = await async_client.delete("/api/v1/content/test-id")
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          assert data["data"]["id"] == "test-id"
+E       fixture 'mock_db_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:278
+______________ ERROR at setup of TestProxyAPI.test_get_proxy_list ______________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 297
+      @pytest.mark.asyncio
+      async def test_get_proxy_list(self, async_client, mock_proxy_manager):
+          """测试获取代理列表"""
+          mock_proxy_manager.proxies = {}
+
+          response = await async_client.get("/api/v1/proxy/")
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          assert "items" in data["data"]
+          assert "total" in data["data"]
+E       fixture 'mock_proxy_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:297
+____________ ERROR at setup of TestProxyAPI.test_get_active_proxies ____________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 310
+      @pytest.mark.asyncio
+      async def test_get_active_proxies(self, async_client, mock_proxy_manager):
+          """测试获取可用代理"""
+          mock_proxy_manager.active_proxies = []
+          mock_proxy_manager.proxies = {}
+
+          response = await async_client.get("/api/v1/proxy/active")
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          assert data["data"]["count"] == 0
+E       fixture 'mock_proxy_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:310
+______________ ERROR at setup of TestProxyAPI.test_get_best_proxy ______________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 323
+      @pytest.mark.asyncio
+      async def test_get_best_proxy(self, async_client, mock_proxy_manager):
+          """测试获取最佳代理"""
+          mock_proxy_manager.get_proxy.return_value = None  # 无可用代理
+
+          response = await async_client.get("/api/v1/proxy/best")
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is False
+          assert data["data"] is None
+E       fixture 'mock_proxy_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:323
+________________ ERROR at setup of TestProxyAPI.test_test_proxy ________________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 335
+      @pytest.mark.asyncio
+      async def test_test_proxy(self, async_client, sample_proxy_data, mock_proxy_manager):
+          """测试代理测试接口"""
+          # 模拟代理测试成功
+          with patch('src.proxy.proxy_manager.ProxyManager.test_proxy') as mock_test:
+              mock_test.return_value = True
+
+              response = await async_client.post("/api/v1/proxy/test", json=sample_proxy_data)
+
+              assert response.status_code == 200
+              data = response.json()
+              assert data["success"] is True
+              assert data["data"]["test_result"] is True
+E       fixture 'sample_proxy_data' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:335
+____________ ERROR at setup of TestProxyAPI.test_refresh_proxy_list ____________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 349
+      @pytest.mark.asyncio
+      async def test_refresh_proxy_list(self, async_client, mock_proxy_manager):
+          """测试刷新代理列表"""
+          # 模拟刷新前后的数量
+          mock_proxy_manager.proxies = {"old_proxy": "data"}
+          mock_proxy_manager.refresh_proxies = AsyncMock()
+          mock_proxy_manager.active_proxies = []
+
+          response = await async_client.post("/api/v1/proxy/refresh")
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          mock_proxy_manager.refresh_proxies.assert_called_once()
+E       fixture 'mock_proxy_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:349
+___________ ERROR at setup of TestProxyAPI.test_get_proxy_statistics ___________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 364
+      @pytest.mark.asyncio
+      async def test_get_proxy_statistics(self, async_client, mock_proxy_manager):
+          """测试获取代理统计"""
+          mock_stats = {
+              "total_proxies": 10,
+              "active_proxies": 7,
+              "banned_proxies": 2,
+              "average_success_rate": 85.5
+          }
+          mock_proxy_manager.get_proxy_statistics.return_value = mock_stats
+
+          response = await async_client.get("/api/v1/proxy/statistics")
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          assert data["data"] == mock_stats
+E       fixture 'mock_proxy_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:364
+______________ ERROR at setup of TestSystemAPI.test_health_check _______________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 398
+      @pytest.mark.asyncio
+      async def test_health_check(self, async_client, mock_db_manager, mock_crawler_manager, mock_proxy_manager):
+          """测试健康检查"""
+          response = await async_client.get("/health")
+
+          assert response.status_code == 200
+          data = response.json()
+          assert data["success"] is True
+          assert "status" in data["data"]
+          assert "components" in data["data"]
+          assert "database" in data["data"]["components"]
+          assert "crawler" in data["data"]["components"]
+          assert "proxy" in data["data"]["components"]
+E       fixture 'mock_db_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:398
+________ ERROR at setup of TestErrorHandling.test_internal_server_error ________
+file /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py, line 444
+      @pytest.mark.asyncio
+      async def test_internal_server_error(self, async_client, mock_crawler_manager):
+          """测试内部服务器错误"""
+          # 模拟异常
+          mock_crawler_manager.get_statistics.side_effect = Exception("测试异常")
+
+          response = await async_client.get("/api/v1/crawlers/statistics")
+          assert response.status_code == 500
+
+          data = response.json()
+          assert data["success"] is False
+          assert "error" in data
+E       fixture 'mock_crawler_manager' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, app_with_mocks, assert_response_structure, async_client, async_test_helper, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, class_mocker, clean_database, client, cov, doctest_namespace, event_loop, mock_data_generator, mocker, module_mocker, monkeypatch, no_cover, package_mocker, performance_monitor, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, sample_content_data, session_mocker, test_settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/yjlh/Documents/code/Historical Text Project/services/file-processor/tests/integration/test_api.py:444
+=================================== FAILURES ===================================
+_______________ TestCrawlerAPI.test_create_invalid_crawler_task ________________
+services/file-processor/tests/integration/test_api.py:37: in test_create_invalid_crawler_task
+    response = await async_client.post("/api/v1/crawlers/", json=invalid_config)
+E   AttributeError: 'async_generator' object has no attribute 'post'
+_______________________ TestSystemAPI.test_root_endpoint _______________________
+services/file-processor/tests/integration/test_api.py:389: in test_root_endpoint
+    response = await async_client.get("/")
+E   AttributeError: 'async_generator' object has no attribute 'get'
+_______________________ TestSystemAPI.test_service_info ________________________
+services/file-processor/tests/integration/test_api.py:415: in test_service_info
+    response = await async_client.get("/info")
+E   AttributeError: 'async_generator' object has no attribute 'get'
+_______________________ TestErrorHandling.test_404_error _______________________
+services/file-processor/tests/integration/test_api.py:431: in test_404_error
+    response = await async_client.get("/nonexistent-endpoint")
+E   AttributeError: 'async_generator' object has no attribute 'get'
+___________________ TestErrorHandling.test_validation_error ____________________
+services/file-processor/tests/integration/test_api.py:441: in test_validation_error
+    response = await async_client.post("/api/v1/crawlers/", json=invalid_data)
+E   AttributeError: 'async_generator' object has no attribute 'post'
+=============================== warnings summary ===============================
+../../../Library/Python/3.9/lib/python/site-packages/pydantic/_internal/_config.py:268
+../../../Library/Python/3.9/lib/python/site-packages/pydantic/_internal/_config.py:268
+../../../Library/Python/3.9/lib/python/site-packages/pydantic/_internal/_config.py:268
+../../../Library/Python/3.9/lib/python/site-packages/pydantic/_internal/_config.py:268
+../../../Library/Python/3.9/lib/python/site-packages/pydantic/_internal/_config.py:268
+  /Users/yjlh/Library/Python/3.9/lib/python/site-packages/pydantic/_internal/_config.py:268: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.5/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+services/file-processor/src/config/settings.py:164
+  /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/src/config/settings.py:164: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.5/migration/
+    @validator('service')
+
+services/file-processor/src/config/settings.py:172
+  /Users/yjlh/Documents/code/Historical Text Project/services/file-processor/src/config/settings.py:172: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.5/migration/
+    @validator('content')
+
+../../../Library/Python/3.9/lib/python/site-packages/PyPDF2/__init__.py:21
+  /Users/yjlh/Library/Python/3.9/lib/python/site-packages/PyPDF2/__init__.py:21: DeprecationWarning: PyPDF2 is deprecated. Please move to the pypdf library instead.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED services/file-processor/tests/integration/test_api.py::TestCrawlerAPI::test_create_invalid_crawler_task
+FAILED services/file-processor/tests/integration/test_api.py::TestSystemAPI::test_root_endpoint
+FAILED services/file-processor/tests/integration/test_api.py::TestSystemAPI::test_service_info
+FAILED services/file-processor/tests/integration/test_api.py::TestErrorHandling::test_404_error
+FAILED services/file-processor/tests/integration/test_api.py::TestErrorHandling::test_validation_error
+ERROR services/file-processor/tests/integration/test_api.py::TestCrawlerAPI::test_create_crawler_task
+ERROR services/file-processor/tests/integration/test_api.py::TestCrawlerAPI::test_start_crawler_task
+ERROR services/file-processor/tests/integration/test_api.py::TestCrawlerAPI::test_start_nonexistent_task
+ERROR services/file-processor/tests/integration/test_api.py::TestCrawlerAPI::test_get_task_status
+ERROR services/file-processor/tests/integration/test_api.py::TestCrawlerAPI::test_get_all_tasks
+ERROR services/file-processor/tests/integration/test_api.py::TestCrawlerAPI::test_get_crawler_statistics
+ERROR services/file-processor/tests/integration/test_api.py::TestContentAPI::test_create_content
+ERROR services/file-processor/tests/integration/test_api.py::TestContentAPI::test_create_duplicate_content
+ERROR services/file-processor/tests/integration/test_api.py::TestContentAPI::test_batch_create_content
+ERROR services/file-processor/tests/integration/test_api.py::TestContentAPI::test_get_content_list
+ERROR services/file-processor/tests/integration/test_api.py::TestContentAPI::test_get_content_detail
+ERROR services/file-processor/tests/integration/test_api.py::TestContentAPI::test_get_nonexistent_content
+ERROR services/file-processor/tests/integration/test_api.py::TestContentAPI::test_update_content
+ERROR services/file-processor/tests/integration/test_api.py::TestContentAPI::test_delete_content
+ERROR services/file-processor/tests/integration/test_api.py::TestProxyAPI::test_get_proxy_list
+ERROR services/file-processor/tests/integration/test_api.py::TestProxyAPI::test_get_active_proxies
+ERROR services/file-processor/tests/integration/test_api.py::TestProxyAPI::test_get_best_proxy
+ERROR services/file-processor/tests/integration/test_api.py::TestProxyAPI::test_test_proxy
+ERROR services/file-processor/tests/integration/test_api.py::TestProxyAPI::test_refresh_proxy_list
+ERROR services/file-processor/tests/integration/test_api.py::TestProxyAPI::test_get_proxy_statistics
+ERROR services/file-processor/tests/integration/test_api.py::TestSystemAPI::test_health_check
+ERROR services/file-processor/tests/integration/test_api.py::TestErrorHandling::test_internal_server_error
+=================== 5 failed, 8 warnings, 22 errors in 0.13s ===================

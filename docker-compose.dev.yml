@@ -221,6 +221,63 @@ services:
       retries: 5
       start_period: 120s
 
+  # 智能分类服务
+  intelligent-classification-service:
+    image: python:3.11-slim
+    container_name: integration-intelligent-classification-service
+    ports:
+      - "8007:8007"
+    environment:
+      - SERVICE_NAME=intelligent-classification-service
+      - SERVICE_VERSION=1.0.0
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=8007
+      - API_PORT=8007
+      - SERVICE_ENVIRONMENT=testing
+      - DEBUG=true
+      
+      # 日志配置
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT={time} | {level} | {message}
+      
+      # Storage Service配置
+      - STORAGE_SERVICE_URL=http://storage-service:8000
+      - STORAGE_SERVICE_TIMEOUT=30
+      - STORAGE_SERVICE_RETRIES=3
+      
+      # 安全配置
+      - SECRET_KEY=integration-test-secret-key
+      - JWT_SECRET_KEY=integration-test-jwt-secret
+      - JWT_ALGORITHM=HS256
+      
+      # ML配置
+      - MODEL_CACHE_DIR=/app/models
+      - MAX_MODEL_SIZE_MB=500
+      - FEATURE_CACHE_ENABLED=true
+    volumes:
+      - ./services/intelligent-classification-service:/app
+      - ./services/intelligent-classification-service/logs:/app/logs
+      - ./services/intelligent-classification-service/models:/app/models
+    working_dir: /app
+    command: >
+      sh -c "
+        apt-get update && apt-get install -y gcc g++ curl &&
+        pip install --no-cache-dir -r requirements.txt &&
+        python -m src.main
+      "
+    networks:
+      - test_network
+    depends_on:
+      storage-service:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
   # 集成测试容器
   integration-tests:
     image: python:3.11-slim

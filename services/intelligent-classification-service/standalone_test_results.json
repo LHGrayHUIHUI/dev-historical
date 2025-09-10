@@ -1,0 +1,83 @@
+{
+  "start_time": "2025-09-08T17:35:42.527533",
+  "service": "intelligent-classification-service",
+  "test_type": "standalone",
+  "tests": [
+    {
+      "name": "模块导入测试",
+      "status": "FAILED",
+      "duration": 0.1847379207611084,
+      "details": {},
+      "error": "模块导入失败: attempted relative import beyond top-level package"
+    },
+    {
+      "name": "配置系统测试",
+      "status": "PASSED",
+      "duration": 2.5033950805664062e-05,
+      "details": {
+        "service_name": "intelligent-classification-service",
+        "api_port": 8007,
+        "topic_labels_count": 8,
+        "has_model_config": true,
+        "has_feature_config": true
+      },
+      "error": null
+    },
+    {
+      "name": "数据模型测试",
+      "status": "PASSED",
+      "duration": 5.984306335449219e-05,
+      "details": {
+        "models_tested": [
+          "ClassificationRequest",
+          "BaseResponse",
+          "TrainingDataCreate"
+        ],
+        "classification_types": [
+          "topic",
+          "era",
+          "document_type",
+          "importance",
+          "sentiment",
+          "genre"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "文本预处理测试",
+      "status": "FAILED",
+      "duration": 0.00020575523376464844,
+      "details": {},
+      "error": "文本预处理失败: attempted relative import beyond top-level package"
+    },
+    {
+      "name": "特征提取测试",
+      "status": "FAILED",
+      "duration": 0.00015997886657714844,
+      "details": {},
+      "error": "特征提取失败: attempted relative import beyond top-level package"
+    },
+    {
+      "name": "模型训练器测试",
+      "status": "FAILED",
+      "duration": 28.255269050598145,
+      "details": {},
+      "error": "模型训练器初始化失败: attempted relative import beyond top-level package"
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "passed": 2,
+    "failed": 4,
+    "errors": [
+      "模块导入失败: attempted relative import beyond top-level package",
+      "文本预处理失败: attempted relative import beyond top-level package",
+      "特征提取失败: attempted relative import beyond top-level package",
+      "模型训练器初始化失败: attempted relative import beyond top-level package"
+    ],
+    "success_rate": 33.33333333333333
+  },
+  "end_time": "2025-09-08T17:36:10.968272",
+  "total_duration": 28.440457582473755
+}

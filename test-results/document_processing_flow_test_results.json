@@ -1,0 +1,100 @@
+{
+  "test_type": "document_processing_flow_integration",
+  "execution_time": "2025-09-09T10:02:11.316798",
+  "results": [
+    {
+      "test_name": "file-processor健康检查",
+      "status": "PASSED",
+      "timestamp": "2025-09-09T10:02:11.303872",
+      "duration": 0.00862329199999999,
+      "details": {
+        "service_healthy": true,
+        "response_time_ms": 8.62,
+        "service_info": {
+          "status": "healthy",
+          "timestamp": "2025-09-09T02:02:11.301338",
+          "service": {
+            "name": "data-source-service",
+            "version": "1.0.0",
+            "environment": "testing"
+          },
+          "components": {
+            "processors": {
+              "status": "ready",
+              "available_processors": [
+                "pdf",
+                "word",
+                "image",
+                "html"
+              ]
+            }
+          },
+          "issues": []
+        },
+        "processors_ready": true
+      },
+      "error": null
+    },
+    {
+      "test_name": "支持格式查询",
+      "status": "PASSED",
+      "timestamp": "2025-09-09T10:02:11.305177",
+      "duration": 0.0012465829999999956,
+      "details": {
+        "formats_query_successful": true,
+        "response_time_ms": 1.25,
+        "supported_formats": [],
+        "format_count": 0
+      },
+      "error": null
+    },
+    {
+      "test_name": "文档处理功能",
+      "status": "FAILED",
+      "timestamp": "2025-09-09T10:02:11.307901",
+      "duration": 0.0026383329999999927,
+      "details": {
+        "processing_successful": true,
+        "response_time_ms": 2.64,
+        "extracted_text_length": 0,
+        "text_integrity_check": false,
+        "file_info": {},
+        "processing_duration": 0,
+        "detected_encoding": "unknown"
+      },
+      "error": "处理不完整: success=True, integrity=False"
+    },
+    {
+      "test_name": "批量文档处理",
+      "status": "FAILED",
+      "timestamp": "2025-09-09T10:02:11.309947",
+      "duration": 0.0020306670000000138,
+      "details": {},
+      "error": "'list' object has no attribute 'get'"
+    },
+    {
+      "test_name": "错误处理能力",
+      "status": "FAILED",
+      "timestamp": "2025-09-09T10:02:11.311044",
+      "duration": 0.000987624999999992,
+      "details": {},
+      "error": "无效文件被错误处理为成功"
+    },
+    {
+      "test_name": "负载性能测试",
+      "status": "PASSED",
+      "timestamp": "2025-09-09T10:02:11.316509",
+      "duration": 0.005441875000000013,
+      "details": {
+        "concurrent_requests": 5,
+        "successful_requests": 5,
+        "total_time_seconds": 0.005,
+        "average_processing_time": 0.0,
+        "requests_per_second": 918.8,
+        "success_rate": 100.0,
+        "performance_acceptable": true
+      },
+      "error": null
+    }
+  ]
+}

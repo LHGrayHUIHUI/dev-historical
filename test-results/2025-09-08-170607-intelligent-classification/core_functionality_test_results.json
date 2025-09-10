@@ -1,0 +1,107 @@
+{
+  "start_time": "2025-09-08T17:37:24.140986",
+  "service": "intelligent-classification-service",
+  "test_type": "core_functionality",
+  "tests": [
+    {
+      "name": "基础依赖导入",
+      "status": "PASSED",
+      "duration": 1.4547672271728516,
+      "details": "所有基础依赖库导入成功",
+      "error": null
+    },
+    {
+      "name": "中文分词功能",
+      "status": "PASSED",
+      "duration": 0.35870885848999023,
+      "details": {
+        "original_text": "汉武帝时期国力强盛，多次出征匈奴，建立了强大的汉帝国。",
+        "tokens": [
+          "汉武帝",
+          "时期",
+          "国力",
+          "强盛",
+          "，",
+          "多次",
+          "出征",
+          "匈奴",
+          "，",
+          "建立",
+          "了",
+          "强大",
+          "的",
+          "汉",
+          "帝国",
+          "。"
+        ],
+        "token_count": 16
+      },
+      "error": null
+    },
+    {
+      "name": "TF-IDF特征提取",
+      "status": "PASSED",
+      "duration": 0.008278131484985352,
+      "details": {
+        "docs_count": 4,
+        "feature_matrix_shape": [
+          4,
+          15
+        ],
+        "vocab_size": 15,
+        "sample_features": [
+          "先进",
+          "军事",
+          "发达",
+          "唐朝",
+          "商业贸易",
+          "国力",
+          "宋朝",
+          "强盛",
+          "技术",
+          "时期"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "机器学习分类器",
+      "status": "PASSED",
+      "duration": 0.019011259078979492,
+      "details": {
+        "training_samples": 8,
+        "classes": [
+          "政治",
+          "经济",
+          "军事",
+          "文学"
+        ],
+        "test_text": "诗人创作优秀作品",
+        "prediction": "经济",
+        "probabilities": {
+          "军事": 0.2,
+          "政治": 0.1,
+          "文学": 0.3,
+          "经济": 0.4
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "Pydantic数据模型",
+      "status": "PASSED",
+      "duration": 0.08658003807067871,
+      "details": {
+        "request_model": {
+          "project_id": "test-project-001",
+          "text_content": "这是一个测试文本内容",
+          "return_probabilities": true
+        },
+        "response_model": {
+          "success": true,
+          "prediction": "测试分类",
+          "probabilities": {
+            "测试分类": 0.85,
+            "其他": 0.15
+          },
+          "timestamp": 

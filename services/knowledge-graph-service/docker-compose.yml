@@ -1,0 +1,160 @@
+# 知识图谱构建服务 Docker Compose 配置
+# 支持开发和测试环境的独立部署
+
+version: '3.8'
+
+services:
+  knowledge-graph-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: knowledge-graph-service:latest
+    container_name: knowledge-graph-service
+    
+    # 端口映射
+    ports:
+      - "8006:8006"
+    
+    # 环境变量
+    environment:
+      # 服务配置
+      SERVICE_NAME: "knowledge-graph-service"
+      API_HOST: "0.0.0.0"
+      API_PORT: "8006"
+      ENVIRONMENT: "${ENVIRONMENT:-development}"
+      DEBUG: "${DEBUG:-true}"
+      
+      # Storage Service连接
+      STORAGE_SERVICE_URL: "${STORAGE_SERVICE_URL:-http://storage-service:8002}"
+      STORAGE_SERVICE_TIMEOUT: "180"
+      STORAGE_SERVICE_RETRIES: "3"
+      
+      # 其他服务连接（可选）
+      NLP_SERVICE_URL: "${NLP_SERVICE_URL:-http://nlp-service:8004}"
+      OCR_SERVICE_URL: "${OCR_SERVICE_URL:-http://ocr-service:8003}"
+      
+      # 知识图谱配置
+      MAX_TEXT_LENGTH: "10000"
+      MAX_BATCH_SIZE: "50"
+      GRAPH_CONSTRUCTION_TIMEOUT: "600"
+      MAX_CONCURRENT_TASKS: "3"
+      
+      # NLP模型配置
+      SPACY_MODEL_ZH: "zh_core_web_sm"
+      SPACY_MODEL_EN: "en_core_web_sm"
+      BERT_MODEL_NAME: "bert-base-chinese"
+      SENTENCE_TRANSFORMER_MODEL: "all-MiniLM-L6-v2"
+      
+      # 实体识别配置
+      ENTITY_CONFIDENCE_THRESHOLD: "0.75"
+      ENTITY_SIMILARITY_THRESHOLD: "0.85"
+      MAX_ENTITY_LENGTH: "50"
+      MIN_ENTITY_LENGTH: "2"
+      
+      # 关系抽取配置
+      RELATION_CONFIDENCE_THRESHOLD: "0.70"
+      MAX_RELATION_DISTANCE: "100"
+      
+      # 图谱构建配置
+      GRAPH_MAX_NODES: "10000"
+      GRAPH_MAX_EDGES: "50000"
+      GRAPH_CLUSTERING_THRESHOLD: "0.3"
+      
+      # 概念挖掘配置
+      TOPIC_MODEL_NUM_TOPICS: "20"
+      TOPIC_MODEL_PASSES: "10"
+      WORD_EMBEDDING_DIMENSIONS: "300"
+      MIN_CONCEPT_FREQUENCY: "3"
+      
+      # 缓存配置
+      ENABLE_CACHE: "true"
+      CACHE_MAX_SIZE: "1000"
+      CACHE_TTL: "3600"
+      
+      # 日志配置
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+      LOG_FILE: "logs/knowledge_graph_service.log"
+      
+      # 多语言支持
+      DEFAULT_LANGUAGE: "zh"
+      SUPPORTED_LANGUAGES: "zh,en"
+      AUTO_DETECT_LANGUAGE: "true"
+      
+      # 实体链接配置
+      ENTITY_LINKING_ENABLED: "true"
+      ENTITY_LINKING_THRESHOLD: "0.8"
+      WIKIDATA_ENDPOINT: "https://query.wikidata.org/sparql"
+      
+      # 性能优化配置
+      BATCH_PROCESSING_ENABLED: "true"
+      PARALLEL_PROCESSING_ENABLED: "true"
+      MAX_WORKERS: "4"
+      CHUNK_SIZE: "1000"
+    
+    # 卷映射
+    volumes:
+      - ./logs:/app/logs
+      - ./temp:/app/temp
+      - ./cache:/app/cache
+      - knowledge_graph_models:/app/models
+    
+    # 网络配置
+    networks:
+      - historical-text-network
+    
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # 重启策略
+    restart: unless-stopped
+    
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+    
+    # 依赖服务
+    depends_on:
+      storage-service:
+        condition: service_healthy
+
+  # Storage Service (如果不存在的话)
+  storage-service:
+    image: storage-service:latest
+    container_name: storage-service
+    ports:
+      - "8002:8002"
+    environment:
+      SERVICE_NAME: "storage-service"
+      API_PORT: "8002"
+      ENVIRONMENT: "${ENVIRONMENT:-development}"
+    networks:
+      - historical-text-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+# 网络定义
+networks:
+  historical-text-network:
+    driver: bridge
+    name: historical-text-network
+
+# 卷定义
+volumes:
+  knowledge_graph_models:
+    driver: local

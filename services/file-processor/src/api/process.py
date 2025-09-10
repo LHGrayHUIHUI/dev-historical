@@ -11,8 +11,18 @@ from pydantic import BaseModel
 import uuid
 import logging
 
+# 导入处理器
+from ..processors.pdf_processor import PDFProcessor
+from ..processors.word_processor import WordProcessor
+from ..processors.text_processor import TextProcessor
+
 # 配置日志
 logger = logging.getLogger(__name__)
+
+# 初始化处理器
+pdf_processor = PDFProcessor()
+word_processor = WordProcessor()
+text_processor = TextProcessor()
 
 # 创建路由器
 router = APIRouter(prefix="/process", tags=["文件处理"])
@@ -78,24 +88,13 @@ async def process_pdf(
         content = await file.read()
         logger.info(f"开始处理PDF文件: {file.filename}, 大小: {len(content)} bytes")
         
-        # TODO: 实际的PDF处理逻辑
-        # from ..processors.pdf_processor import PDFProcessor
-        # processor = PDFProcessor()
-        # result = await processor.process(content, extract_text, extract_metadata)
-        
-        # 模拟处理结果
-        result = {
-            "filename": file.filename,
-            "size": len(content),
-            "text_content": "这是从PDF提取的文本内容...",
-            "metadata": {
-                "pages": 10,
-                "title": "PDF文档标题",
-                "author": "作者名称",
-                "creation_date": "2025-01-01"
-            } if extract_metadata else None,
-            "processing_time": 2.5
-        }
+        # 使用真实的PDF处理器
+        result = await pdf_processor.process(
+            content=content,
+            extract_text=extract_text,
+            extract_metadata=extract_metadata,
+            filename=file.filename
+        )
         
         # 更新任务状态
         task_status.status = "completed"
@@ -198,32 +197,40 @@ async def process_document(
     
     try:
         content = await file.read()
-        file_ext = file.filename.lower().split('.')[-1]
+        file_ext = file.filename.lower().split('.')[-1] if file.filename else 'unknown'
         
         logger.info(f"开始处理文档: {file.filename} ({file_ext})")
         
-        # TODO: 根据文件类型选择处理器
-        # if file_ext == 'pdf':
-        #     processor = PDFProcessor()
-        # elif file_ext in ['doc', 'docx']:
-        #     processor = WordProcessor()  
-        # elif file_ext in ['html', 'htm']:
-        #     processor = HTMLProcessor()
-        # else:
-        #     raise HTTPException(status_code=400, detail=f"不支持的文件格式: {file_ext}")
+        # 根据文件类型选择处理器
+        if file_ext == 'pdf':
+            result = await pdf_processor.process(
+                content=content,
+                extract_text=extract_text,
+                extract_metadata=extract_metadata,
+                filename=file.filename
+            )
+        elif file_ext in ['doc', 'docx']:
+            result = await word_processor.process(
+                content=content,
+                extract_text=extract_text,
+                extract_metadata=extract_metadata,
+                filename=file.filename
+            )
+        elif file_ext in ['html', 'htm', 'txt']:
+            result = await text_processor.process(
+                content=content,
+                extract_text=extract_text,
+                extract_metadata=extract_metadata,
+                filename=file.filename
+            )
+        else:
+            raise HTTPException(status_code=400, detail=f"不支持的文件格式: {file_ext}")
         
-        # 模拟处理结果
-        result = {
-            "filename": file.filename,
-            "file_type": file_ext,
-            "size": len(content),
-            "text_content": f"这是从{file_ext.upper()}文档提取的内容...",
-            "metadata": {
-                "format": file_ext,
-                "processed_at": datetime.now().isoformat()
-            } if extract_metadata else None,
-            "processing_time": 1.8
-        }
+        # 检查处理结果
+        if not result.get("success", True):
+            error_msg = result.get("error", "文档处理失败")
+            logger.error(f"文档处理失败: {error_msg}")
+            raise Exception(error_msg)
         
         logger.info(f"文档处理完成: {task_id}")
         

@@ -1,0 +1,364 @@
+# 知识图谱构建服务 Kubernetes 部署配置
+# 支持生产环境的高可用性和自动扩缩容
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: historical-text
+  labels:
+    name: historical-text
+    environment: production
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: knowledge-graph-config
+  namespace: historical-text
+data:
+  # 服务配置
+  SERVICE_NAME: "knowledge-graph-service"
+  API_HOST: "0.0.0.0"
+  API_PORT: "8006"
+  ENVIRONMENT: "production"
+  DEBUG: "false"
+  
+  # Storage Service连接
+  STORAGE_SERVICE_URL: "http://storage-service.historical-text.svc.cluster.local:8002"
+  STORAGE_SERVICE_TIMEOUT: "180"
+  STORAGE_SERVICE_RETRIES: "3"
+  
+  # 知识图谱配置
+  MAX_TEXT_LENGTH: "10000"
+  MAX_BATCH_SIZE: "50"
+  GRAPH_CONSTRUCTION_TIMEOUT: "600"
+  MAX_CONCURRENT_TASKS: "3"
+  
+  # NLP模型配置
+  SPACY_MODEL_ZH: "zh_core_web_sm"
+  SPACY_MODEL_EN: "en_core_web_sm"
+  BERT_MODEL_NAME: "bert-base-chinese"
+  SENTENCE_TRANSFORMER_MODEL: "all-MiniLM-L6-v2"
+  
+  # 实体识别配置
+  ENTITY_CONFIDENCE_THRESHOLD: "0.75"
+  ENTITY_SIMILARITY_THRESHOLD: "0.85"
+  MAX_ENTITY_LENGTH: "50"
+  MIN_ENTITY_LENGTH: "2"
+  
+  # 关系抽取配置
+  RELATION_CONFIDENCE_THRESHOLD: "0.70"
+  MAX_RELATION_DISTANCE: "100"
+  
+  # 图谱构建配置
+  GRAPH_MAX_NODES: "10000"
+  GRAPH_MAX_EDGES: "50000"
+  GRAPH_CLUSTERING_THRESHOLD: "0.3"
+  
+  # 概念挖掘配置
+  TOPIC_MODEL_NUM_TOPICS: "20"
+  TOPIC_MODEL_PASSES: "10"
+  WORD_EMBEDDING_DIMENSIONS: "300"
+  MIN_CONCEPT_FREQUENCY: "3"
+  
+  # 缓存配置
+  ENABLE_CACHE: "true"
+  CACHE_MAX_SIZE: "1000"
+  CACHE_TTL: "3600"
+  
+  # 日志配置
+  LOG_LEVEL: "INFO"
+  LOG_FILE: "logs/knowledge_graph_service.log"
+  
+  # 多语言支持
+  DEFAULT_LANGUAGE: "zh"
+  SUPPORTED_LANGUAGES: "zh,en"
+  AUTO_DETECT_LANGUAGE: "true"
+  
+  # 实体链接配置
+  ENTITY_LINKING_ENABLED: "true"
+  ENTITY_LINKING_THRESHOLD: "0.8"
+  WIKIDATA_ENDPOINT: "https://query.wikidata.org/sparql"
+  
+  # 性能优化配置
+  BATCH_PROCESSING_ENABLED: "true"
+  PARALLEL_PROCESSING_ENABLED: "true"
+  MAX_WORKERS: "4"
+  CHUNK_SIZE: "1000"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: knowledge-graph-secrets
+  namespace: historical-text
+type: Opaque
+data:
+  # 这里应该包含敏感配置，如API密钥等
+  # 实际部署时需要填入真实的base64编码值
+  api_key: ""
+  wikidata_api_key: ""
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: knowledge-graph-models-pvc
+  namespace: historical-text
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: knowledge-graph-logs-pvc
+  namespace: historical-text
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: standard
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: knowledge-graph-service
+  namespace: historical-text
+  labels:
+    app: knowledge-graph-service
+    component: knowledge-graph
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: knowledge-graph-service
+  template:
+    metadata:
+      labels:
+        app: knowledge-graph-service
+        component: knowledge-graph
+        tier: backend
+    spec:
+      containers:
+      - name: knowledge-graph-service
+        image: knowledge-graph-service:latest
+        imagePullPolicy: Always
+        
+        ports:
+        - containerPort: 8006
+          name: http
+          protocol: TCP
+        
+        # 环境变量从ConfigMap获取
+        envFrom:
+        - configMapRef:
+            name: knowledge-graph-config
+        - secretRef:
+            name: knowledge-graph-secrets
+        
+        # 资源限制
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+        
+        # 卷挂载
+        volumeMounts:
+        - name: models-storage
+          mountPath: /app/models
+        - name: logs-storage
+          mountPath: /app/logs
+        - name: temp-storage
+          mountPath: /app/temp
+        
+        # 健康检查
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8006
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8006
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        
+        # 启动探针（给予充足时间下载模型）
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8006
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 12
+        
+        # 安全上下文
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+      
+      # 卷定义
+      volumes:
+      - name: models-storage
+        persistentVolumeClaim:
+          claimName: knowledge-graph-models-pvc
+      - name: logs-storage
+        persistentVolumeClaim:
+          claimName: knowledge-graph-logs-pvc
+      - name: temp-storage
+        emptyDir: {}
+      
+      # 重启策略
+      restartPolicy: Always
+      
+      # 镜像拉取策略
+      imagePullSecrets: []
+      
+      # 服务账号
+      serviceAccountName: default
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: knowledge-graph-service
+  namespace: historical-text
+  labels:
+    app: knowledge-graph-service
+    component: knowledge-graph
+    tier: backend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8006
+    targetPort: 8006
+    protocol: TCP
+    name: http
+  selector:
+    app: knowledge-graph-service
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: knowledge-graph-ingress
+  namespace: historical-text
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+spec:
+  tls:
+  - hosts:
+    - api.historical-text.com
+    secretName: tls-secret
+  rules:
+  - host: api.historical-text.com
+    http:
+      paths:
+      - path: /api/v1/knowledge-graph
+        pathType: Prefix
+        backend:
+          service:
+            name: knowledge-graph-service
+            port:
+              number: 8006
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: knowledge-graph-hpa
+  namespace: historical-text
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: knowledge-graph-service
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: knowledge-graph-pdb
+  namespace: historical-text
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: knowledge-graph-service
+
+---
+apiVersion: v1
+kind: ServiceMonitor
+metadata:
+  name: knowledge-graph-service-monitor
+  namespace: historical-text
+  labels:
+    app: knowledge-graph-service
+spec:
+  selector:
+    matchLabels:
+      app: knowledge-graph-service
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s

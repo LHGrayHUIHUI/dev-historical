@@ -1,0 +1,112 @@
+{
+  "start_time": "2025-09-09T09:17:45.247218",
+  "test_type": "intelligent_classification_api_test",
+  "tests": [
+    {
+      "name": "服务可用性检查",
+      "status": "FAILED",
+      "duration": 0.012112291999999997,
+      "details": {
+        "service_reachable": false,
+        "responding_endpoints": [],
+        "non_responding_endpoints": [
+          "/",
+          "/health",
+          "/ready",
+          "/docs",
+          "/openapi.json",
+          "/api/v1/classify",
+          "/api/v1/status",
+          "/api/v1/models"
+        ],
+        "connection_errors": {
+          "/": "连接错误: [Errno 54] Connection reset by peer",
+          "/health": "连接错误: [Errno 54] Connection reset by peer",
+          "/ready": "连接错误: [Errno 54] Connection reset by peer",
+          "/docs": "连接错误: [Errno 54] Connection reset by peer",
+          "/openapi.json": "连接错误: [Errno 54] Connection reset by peer",
+          "/api/v1/classify": "连接错误: [Errno 54] Connection reset by peer",
+          "/api/v1/status": "连接错误: [Errno 54] Connection reset by peer",
+          "/api/v1/models": "连接错误: [Errno 54] Connection reset by peer"
+        }
+      },
+      "error": "服务完全无法访问",
+      "timestamp": "2025-09-09T09:17:45.259377"
+    },
+    {
+      "name": "容器网络状态",
+      "status": "PASSED",
+      "duration": 0.0002542919999999893,
+      "details": {
+        "port_test_method": "tcp_connection_test",
+        "tested_ports": [
+          8007
+        ],
+        "port_8007_status": "open",
+        "port_8007_result_code": 0
+      },
+      "error": null,
+      "timestamp": "2025-09-09T09:17:45.259641"
+    },
+    {
+      "name": "服务启动状态",
+      "status": "FAILED",
+      "duration": 4.01621125,
+      "details": {
+        "startup_check_method": "multiple_attempts",
+        "max_attempts": 3,
+        "attempt_interval": 2,
+        "attempts": [
+          {
+            "attempt_number": 1,
+            "successful": false,
+            "error": "[Errno 54] Connection reset by peer",
+            "response_time": 0.0006871223449707031
+          },
+          {
+            "attempt_number": 2,
+            "successful": false,
+            "error": "[Errno 54] Connection reset by peer",
+            "response_time": 0.008224964141845703
+          },
+          {
+            "attempt_number": 3,
+            "successful": false,
+            "error": "[Errno 54] Connection reset by peer",
+            "response_time": 0.0026009082794189453
+          }
+        ],
+        "summary": {
+          "total_attempts": 3,
+          "successful_attempts": 0,
+          "success_rate": 0.0
+        }
+      },
+      "error": "多次尝试均失败",
+      "timestamp": "2025-09-09T09:17:49.275885"
+    },
+    {
+      "name": "分类功能端点",
+      "status": "SKIPPED",
+      "duration": 0,
+      "details": {
+        "reason": "服务不可用，跳过功能测试"
+      },
+      "error": "服务基础连接失败",
+      "timestamp": "2025-09-09T09:17:49.275947"
+    }
+  ],
+  "end_time": "2025-09-09T09:17:49.276023",
+  "summary": {
+    "total": 4,
+    "passed": 1,
+    "failed": 2,
+    "skipped": 1,
+    "success_rate": 25.0,
+    "errors": [
+      "服务完全无法访问",
+      "多次尝试均失败",
+      "服务基础连接失败"
+    ]
+  }
+}

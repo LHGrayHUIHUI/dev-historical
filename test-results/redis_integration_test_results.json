@@ -1,0 +1,92 @@
+{
+  "test_type": "redis_integration",
+  "execution_time": "2025-09-09T09:59:45.071810",
+  "results": [
+    {
+      "test_name": "Redis连接测试",
+      "status": "PASSED",
+      "timestamp": "2025-09-09T09:59:42.012181",
+      "details": {
+        "ping_success": true,
+        "set_operation": "success",
+        "get_operation": "success",
+        "data_consistency": true
+      },
+      "error": null
+    },
+    {
+      "test_name": "缓存性能测试",
+      "status": "PASSED",
+      "timestamp": "2025-09-09T09:59:42.045866",
+      "details": {
+        "test_operations": 100,
+        "data_size_per_operation": "1KB",
+        "write_time_total": 0.017,
+        "write_time_avg": 0.171,
+        "read_time_total": 0.016,
+        "read_time_avg": 0.163,
+        "performance_acceptable": true
+      },
+      "error": null
+    },
+    {
+      "test_name": "缓存过期测试",
+      "status": "PASSED",
+      "timestamp": "2025-09-09T09:59:45.049162",
+      "details": {
+        "immediate_value_correct": true,
+        "initial_ttl": 2,
+        "expired_value_none": true,
+        "final_ttl": -2,
+        "expiration_working": true
+      },
+      "error": null
+    },
+    {
+      "test_name": "缓存数据类型测试",
+      "status": "PASSED",
+      "timestamp": "2025-09-09T09:59:45.052456",
+      "details": {
+        "test_data_types": [
+          "string_data",
+          "json_data",
+          "chinese_data",
+          "special_chars",
+          "number_as_string"
+        ],
+        "storage_results": {
+          "string_data": true,
+          "json_data": true,
+          "chinese_data": true,
+          "special_chars": true,
+          "number_as_string": true
+        },
+        "retrieval_accuracy": {
+          "string_data": true,
+          "json_data": true,
+          "chinese_data": true,
+          "special_chars": true,
+          "number_as_string": true
+        },
+        "all_types_supported": true
+      },
+      "error": null
+    },
+    {
+      "test_name": "缓存内存测试",
+      "status": "PASSED",
+      "timestamp": "2025-09-09T09:59:45.071581",
+      "details": {
+        "initial_memory_bytes": 1150496,
+        "after_storage_memory_bytes": 1719136,
+        "final_memory_bytes": 1203856,
+        "memory_increase_bytes": 568640,
+        "memory_increase_kb": 555.31,
+        "keys_created": 50,
+        "keys_deleted": 50,
+        "memory_cleanup_working": true
+      },
+      "error": null
+    }
+  ]
+}

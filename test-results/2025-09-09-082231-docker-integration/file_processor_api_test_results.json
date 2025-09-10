@@ -1,0 +1,187 @@
+{
+  "start_time": "2025-09-09T09:15:02.734693",
+  "test_type": "file_processor_api_test",
+  "tests": [
+    {
+      "name": "基本端点测试",
+      "status": "PASSED",
+      "duration": 0.01721333399999997,
+      "details": {
+        "tested_endpoints": [
+          "/health",
+          "/info",
+          "/docs",
+          "/openapi.json"
+        ],
+        "response_details": {
+          "/health": {
+            "status_code": 200,
+            "content_type": "application/json",
+            "response_size": 310
+          },
+          "/info": {
+            "status_code": 200,
+            "content_type": "application/json",
+            "response_size": 1264
+          },
+          "/docs": {
+            "status_code": 200,
+            "content_type": "text/html; charset=utf-8",
+            "response_size": 947
+          },
+          "/openapi.json": {
+            "status_code": 200,
+            "content_type": "application/json",
+            "response_size": 10013
+          }
+        }
+      },
+      "error": null,
+      "timestamp": "2025-09-09T09:15:02.751980"
+    },
+    {
+      "name": "支持格式查询",
+      "status": "PASSED",
+      "duration": 0.0008532909999999783,
+      "details": {
+        "supported_formats": {
+          "success": true,
+          "data": {
+            "document_formats": [
+              {
+                "extension": "pdf",
+                "description": "PDF文档",
+                "features": [
+                  "文本提取",
+                  "元数据提取"
+                ]
+              },
+              {
+                "extension": "doc",
+                "description": "Word文档(旧版)",
+                "features": [
+                  "文本提取"
+                ]
+              },
+              {
+                "extension": "docx",
+                "description": "Word文档(新版)",
+                "features": [
+                  "文本提取",
+                  "元数据提取"
+                ]
+              },
+              {
+                "extension": "html",
+                "description": "HTML网页",
+                "features": [
+                  "文本提取",
+                  "结构解析"
+                ]
+              },
+              {
+                "extension": "htm",
+                "description": "HTML网页",
+                "features": [
+                  "文本提取",
+                  "结构解析"
+                ]
+              },
+              {
+                "extension": "txt",
+                "description": "纯文本",
+                "features": [
+                  "文本提取"
+                ]
+              }
+            ],
+            "image_formats": [
+              {
+                "extension": "jpg",
+                "description": "JPEG图片",
+                "features": [
+                  "OCR文字识别"
+                ]
+              },
+              {
+                "extension": "jpeg",
+                "description": "JPEG图片",
+                "features": [
+                  "OCR文字识别"
+                ]
+              },
+              {
+                "extension": "png",
+                "description": "PNG图片",
+                "features": [
+                  "OCR文字识别"
+                ]
+              },
+              {
+                "extension": "gif",
+                "description": "GIF图片",
+                "features": [
+                  "OCR文字识别"
+                ]
+              },
+              {
+                "extension": "bmp",
+                "description": "BMP图片",
+                "features": [
+                  "OCR文字识别"
+                ]
+              }
+            ]
+          },
+          "message": "支持的文件格式列表"
+        },
+        "format_count": 0
+      },
+      "error": null,
+      "timestamp": "2025-09-09T09:15:02.752845"
+    },
+    {
+      "name": "文档处理功能",
+      "status": "PASSED",
+      "duration": 0.0031536670000000266,
+      "details": {
+        "processing_successful": true,
+        "extracted_text_length": 0,
+        "detected_format": null,
+        "processing_duration": null,
+        "file_size": null
+      },
+      "error": null,
+      "timestamp": "2025-09-09T09:15:02.756010"
+    },
+    {
+      "name": "批量处理功能",
+      "status": "FAILED",
+      "duration": 0.002534124999999998,
+      "details": {},
+      "error": "'list' object has no attribute 'get'",
+      "timestamp": "2025-09-09T09:15:02.758560"
+    },
+    {
+      "name": "任务状态跟踪",
+      "status": "FAILED",
+      "duration": 0.0014401250000000143,
+      "details": {
+        "no_task_id": true
+      },
+      "error": "未返回task_id",
+      "timestamp": "2025-09-09T09:15:02.760016"
+    }
+  ],
+  "end_time": "2025-09-09T09:15:02.760154",
+  "summary": {
+    "total": 5,
+    "passed": 3,
+    "failed": 2,
+    "success_rate": 60.0,
+    "errors": [
+      "'list' object has no attribute 'get'",
+      "未返回task_id"
+    ]
+  }
+}

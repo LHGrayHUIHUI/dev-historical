@@ -1,0 +1,121 @@
+# OCR服务测试配置文件
+# 基于OCR-service-test-design-20250909.md设计
+
+test_environment:
+  ocr_service_url: "http://localhost:8003"
+  storage_service_url: "http://localhost:8002"
+  timeout_settings:
+    request_timeout: 30
+    async_task_timeout: 300
+    batch_processing_timeout: 600
+
+test_data_paths:
+  base_path: "./test-data/images"
+  high_quality: "./test-data/images/high_quality"
+  medium_quality: "./test-data/images/medium_quality" 
+  low_quality: "./test-data/images/low_quality"
+  multilingual: "./test-data/images/multilingual"
+  special_chars: "./test-data/images/special_chars"
+  edge_cases: "./test-data/images/edge_cases"
+
+test_parameters:
+  engines_to_test: ["paddleocr", "tesseract", "easyocr"]
+  confidence_thresholds: [0.5, 0.7, 0.8, 0.9]
+  language_combinations: 
+    - "zh"
+    - "en" 
+    - "zh,en"
+    - "zh,en,ja"
+  file_size_limits:
+    max_single_file: 10485760  # 10MB
+    max_batch_total: 104857600  # 100MB
+  batch_size_limits:
+    max_files_per_batch: 20
+
+quality_expectations:
+  high_quality_images:
+    min_confidence: 0.9
+    max_processing_time: 3.0
+    expected_accuracy: 0.95
+    
+  medium_quality_images:
+    min_confidence: 0.7
+    max_processing_time: 5.0
+    expected_accuracy: 0.85
+    
+  low_quality_images:
+    min_confidence: 0.5
+    max_processing_time: 10.0
+    expected_accuracy: 0.70
+
+performance_benchmarks:
+  single_image_processing:
+    small_image: # < 1MB
+      target_time: 3.0
+      max_acceptable_time: 5.0
+    medium_image: # 1-5MB  
+      target_time: 10.0
+      max_acceptable_time: 15.0
+    large_image: # 5-10MB
+      target_time: 30.0
+      max_acceptable_time: 45.0
+      
+  batch_processing:
+    small_batch: # 5 images
+      target_time: 15.0
+      max_acceptable_time: 25.0
+    medium_batch: # 10 images
+      target_time: 60.0
+      max_acceptable_time: 90.0
+    large_batch: # 20 images
+      target_time: 300.0
+      max_acceptable_time: 450.0
+
+error_scenarios:
+  invalid_file_formats: ["pdf", "docx", "txt", "mp4", "exe"]
+  oversized_files: [52428800, 104857600]  # 50MB, 100MB
+  corrupted_files: ["truncated.jpg", "invalid_header.png"]
+  network_failures: ["timeout", "connection_refused", "server_error"]
+
+validation_rules:
+  required_response_fields:
+    - "success"
+    - "message" 
+    - "data"
+  
+  ocr_result_fields:
+    - "text_content"
+    - "confidence"
+    - "processing_time"
+    - "language_detected"
+    - "word_count"
+    - "char_count"
+    
+  async_task_fields:
+    - "task_id"
+    - "status"
+    - "async_mode"
+
+test_execution:
+  parallel_test_execution: true
+  max_concurrent_tests: 4
+  retry_failed_tests: 2
+  generate_detailed_reports: true
+  save_intermediate_results: true
+  
+  test_priority_execution_order:
+    - "P0"  # 核心功能，必须通过
+    - "P1"  # 重要功能，应该通过  
+    - "P2"  # 增强功能，可选通过
+
+logging:
+  log_level: "DEBUG"
+  save_request_response: true
+  save_test_artifacts: true
+  screenshot_failures: true
+
+reporting:
+  formats: ["html", "json", "junit"]
+  include_performance_metrics: true
+  include_coverage_analysis: true
+  generate_trend_analysis: false

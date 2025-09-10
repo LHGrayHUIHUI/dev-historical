@@ -317,39 +317,85 @@ class TextExtractionWorker:
         """计算文本质量评分
         
         Args:
-            content_data: 文本内容数据
+            content_data: 文本内容数据（来自file-processor的响应）
             
         Returns:
             质量评分 (0-1)
         """
-        content = content_data.get('content', '')
-        confidence = content_data.get('confidence', 1.0)
+        # 适应file-processor的返回格式
+        content = content_data.get('text_content', content_data.get('content', ''))
+        success = content_data.get('success', True)
+        warnings = content_data.get('warnings', [])
+        processing_method = content_data.get('processing_method', '')
         
-        if not content:
+        if not content or not content.strip():
             return 0.0
         
         score = 1.0
         
+        # 基于处理成功状态的评分
+        if not success:
+            score *= 0.2
+        
+        # 基于处理方法的评分
+        if processing_method == 'failed':
+            score *= 0.1
+        elif processing_method == 'pypdf2' and 'pdfplumber提取失败' in str(warnings):
+            score *= 0.8  # PyPDF2作为备选方案时稍微降分
+        
         # 基于内容长度的评分
         content_length = len(content.strip())
         if content_length < 10:
-            score *= 0.3
+            score *= 0.2
         elif content_length < 50:
+            score *= 0.5
+        elif content_length < 100:
             score *= 0.7
+        elif content_length >= 1000:
+            score *= 1.0  # 长内容得高分
+        else:
+            score *= 0.9
         
-        # 基于置信度的评分
-        if confidence is not None:
-            score *= confidence
+        # 基于警告数量的评分
+        if warnings:
+            warning_penalty = min(0.3, len(warnings) * 0.1)
+            score *= (1.0 - warning_penalty)
         
-        # 基于特殊字符比例的评分
+        # 基于特殊字符比例的评分（针对中文文档优化）
         import re
-        special_chars = len(re.findall(r'[^\w\s\u4e00-\u9fff]', content))
+        # 统计中文字符
+        chinese_chars = len(re.findall(r'[\u4e00-\u9fff]', content))
+        # 统计英文字母
+        english_chars = len(re.findall(r'[a-zA-Z]', content))
+        # 统计数字
+        digit_chars = len(re.findall(r'[0-9]', content))
+        # 统计标点符号（正常的）
+        punctuation_chars = len(re.findall(r'[，。！？；：""''（）【】《》、\.,!?;:()\[\]"\'<>]', content))
+        # 统计异常字符（乱码、特殊符号等）
+        abnormal_chars = len(re.findall(r'[^\u4e00-\u9fff\w\s，。！？；：""''（）【】《》、\.,!?;:()\[\]"\'<>-]', content))
+        
+        valid_chars = chinese_chars + english_chars + digit_chars + punctuation_chars
         if content_length > 0:
-            special_ratio = special_chars / content_length
-            if special_ratio > 0.5:
-                score *= 0.5
-            elif special_ratio > 0.3:
+            abnormal_ratio = abnormal_chars / content_length
+            valid_ratio = valid_chars / content_length
+            
+            # 异常字符太多说明提取质量差
+            if abnormal_ratio > 0.3:
+                score *= 0.3
+            elif abnormal_ratio > 0.1:
                 score *= 0.7
+            
+            # 有效字符比例高说明质量好
+            if valid_ratio > 0.9:
+                score *= 1.0
+            elif valid_ratio > 0.7:
+                score *= 0.9
+            else:
+                score *= 0.6
+        
+        # 基于文本完整性的评分（检查是否有明显的截断）
+        if content.strip().endswith(('...', '…', '【省略】', '等等')):
+            score *= 0.8
         
         return round(max(0.0, min(1.0, score)), 3)
     

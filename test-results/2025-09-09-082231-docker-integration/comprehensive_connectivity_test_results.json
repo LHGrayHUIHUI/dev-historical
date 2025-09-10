@@ -1,0 +1,226 @@
+{
+  "start_time": "2025-09-09T09:04:56.326453",
+  "test_type": "comprehensive_connectivity_test",
+  "tests": [
+    {
+      "name": "infrastructure_connectivity",
+      "status": "PASSED",
+      "duration": 0.025311946868896484,
+      "details": {
+        "accessible_services": [
+          "postgresql",
+          "mongodb",
+          "redis",
+          "minio",
+          "rabbitmq"
+        ],
+        "connection_details": {
+          "postgresql": "✅ 端口可访问",
+          "mongodb": "✅ 端口可访问",
+          "redis": "✅ 端口可访问",
+          "minio": "✅ HTTP可访问 (403)",
+          "rabbitmq": "✅ HTTP可访问 (200)"
+        },
+        "total_services": 5
+      },
+      "error": null,
+      "timestamp": "2025-09-09T09:04:56.351786"
+    },
+    {
+      "name": "file-processor_basic_connectivity",
+      "status": "PASSED",
+      "duration": 0.011391878128051758,
+      "details": {
+        "service_reachable": true,
+        "health_endpoint": true,
+        "api_docs_available": true,
+        "response_times": {
+          "/health": 0.004712104797363281,
+          "/docs": 0.0014681816101074219,
+          "/openapi.json": 0.0016901493072509766
+        },
+        "available_endpoints": [
+          "/health",
+          "/docs",
+          "/openapi.json"
+        ]
+      },
+      "error": null,
+      "timestamp": "2025-09-09T09:04:56.363193"
+    },
+    {
+      "name": "storage-service_basic_connectivity",
+      "status": "PASSED",
+      "duration": 0.03459787368774414,
+      "details": {
+        "service_reachable": true,
+        "health_endpoint": true,
+        "api_docs_available": true,
+        "response_times": {
+          "/health": 0.0027379989624023438,
+          "/ready": 0.022970914840698242,
+          "/docs": 0.0029959678649902344,
+          "/openapi.json": 0.0023202896118164062
+        },
+        "available_endpoints": [
+          "/health",
+          "/docs",
+          "/openapi.json"
+        ]
+      },
+      "error": null,
+      "timestamp": "2025-09-09T09:04:56.397899"
+    },
+    {
+      "name": "intelligent-classification_basic_connectivity",
+      "status": "FAILED",
+      "duration": 0.008500814437866211,
+      "details": {
+        "service_reachable": false,
+        "health_endpoint": false,
+        "api_docs_available": false,
+        "response_times": {},
+        "available_endpoints": []
+      },
+      "error": "服务无法连接或所有端点均不可用",
+      "timestamp": "2025-09-09T09:04:56.406512"
+    },
+    {
+      "name": "file-processor_advanced_endpoints",
+      "status": "PASSED",
+      "duration": 0.016607999801635742,
+      "details": {
+        "discovered_endpoints": [
+          "/api/v1/process/pdf",
+          "/api/v1/process/image-ocr",
+          "/api/v1/process/document",
+          "/api/v1/process/status/{task_id}",
+          "/api/v1/process/supported-formats",
+          "/api/v1/process/batch",
+          "/api/v1/process/task/{task_id}",
+          "/",
+          "/health",
+          "/info"
+        ],
+        "functional_endpoints": [
+          "/info"
+        ],
+        "api_structure": {
+          "total_endpoints": 10,
+          "methods": {
+            "post": 4,
+            "get": 5,
+            "delete": 1
+          },
+          "tags": [
+            "文件处理",
+            "系统"
+          ]
+        },
+        "endpoint_details": {
+          "/info": {
+            "status_code": 200,
+            "content_type": "application/json",
+            "response_size": 1412
+          }
+        }
+      },
+      "error": null,
+      "timestamp": "2025-09-09T09:04:56.423885"
+    },
+    {
+      "name": "storage-service_advanced_endpoints",
+      "status": "PASSED",
+      "duration": 0.014786958694458008,
+      "details": {
+        "discovered_endpoints": [
+          "/health",
+          "/ready",
+          "/api/v1/data/upload",
+          "/api/v1/data/upload/batch",
+          "/api/v1/data/datasets",
+          "/api/v1/data/datasets/{dataset_id}",
+          "/api/v1/data/datasets/{dataset_id}/processing-status",
+          "/api/v1/data/datasets/{dataset_id}/reprocess",
+          "/api/v1/data/health",
+          "/api/v1/data/info",
+          "/api/v1/content/",
+          "/api/v1/content/with-files",
+          "/api/v1/content/{content_id}",
+          "/api/v1/content/search/",
+          "/api/v1/content/stats/"
+        ],
+        "functional_endpoints": [],
+        "api_structure": {
+          "total_endpoints": 15,
+          "methods": {
+            "get": 11,
+            "post": 5,
+            "put": 2,
+            "delete": 2
+          },
+          "tags": [
+            "健康检查",
+            "服务信息",
+            "数据采集",
+            "内容管理"
+          ]
+        },
+        "endpoint_details": {}
+      },
+      "error": null,
+      "timestamp": "2025-09-09T09:04:56.438780"
+    },
+    {
+      "name": "intelligent-classification_advanced_endpoints",
+      "status": "FAILED",
+      "duration": 0.018208026885986328,
+      "details": {
+        "discovered_endpoints": [],
+        "functional_endpoints": [],
+        "api_structure": {},
+        "endpoint_details": {}
+      },
+      "error": "无可用的高级API端点",
+      "timestamp": "2025-09-09T09:04:56.457123"
+    },
+    {
+      "name": "inter_service_communication",
+      "status": "FAILED",
+      "duration": 0.024692058563232422,
+      "details": {
+        "service_pairs": [],
+        "successful_communications": 2,
+        "total_attempts": 6,
+        "communication_matrix": {
+          "file-processor -> storage-service": "✅ 可通信",
+          "file-processor -> intelligent-classification": "❌ 异常: ...",
+          "storage-service -> file-processor": "✅ 可通信",
+          "storage-service -> intelligent-classification": "❌ 异常: ...",
+          "intelligent-classification -> file-processor": "❌ 异常: ...",
+          "intelligent-classification -> storage-service": "❌ 异常: ..."
+        },
+        "concurrent_access": {
+          "total_services": 3,
+          "successful_responses": 2,
+          "success_rate": 66.66666666666666
+        }
+      },
+      "error": "服务间通信成功率过低: 33.3%",
+      "timestamp": "2025-09-09T09:04:56.482714"
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "passed": 5,
+    "failed": 3,
+    "errors": [
+      "服务无法连接或所有端点均不可用",
+      "无可用的高级API端点",
+      "服务间通信成功率过低: 33.3%"
+    ],
+    "success_rate": 62.5
+  },
+  "end_time": "2025-09-09T09:04:56.482860",
+  "total_duration": 0.1540975570678711
+}

@@ -169,12 +169,15 @@ class Settings(BaseSettings):
     @property
     def trusted_hosts(self) -> List[str]:
         """获取信任的主机"""
-        if self.is_development:
+        if self.is_development or self.is_testing:
             return ["*"]
         return [
             "your-api-domain.com",
             "localhost",
-            "127.0.0.1"
+            "127.0.0.1",
+            "storage-service",
+            "file-processor",
+            "intelligent-classification-service"
         ]
     
     class Config:

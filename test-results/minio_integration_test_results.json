@@ -1,0 +1,50 @@
+{
+  "test_type": "minio_integration",
+  "execution_time": "2025-09-09T10:00:42.509792",
+  "results": [
+    {
+      "test_name": "MinIO服务可访问性",
+      "status": "PASSED",
+      "timestamp": "2025-09-09T10:00:42.465281",
+      "details": {
+        "minio_service_running": true,
+        "response_status": 403,
+        "service_url": "http://localhost:9001"
+      },
+      "error": null
+    },
+    {
+      "test_name": "文件上传到MinIO",
+      "status": "FAILED",
+      "timestamp": "2025-09-09T10:00:42.484205",
+      "details": {},
+      "error": "上传失败: HTTP 422, {\"success\":false,\"error_code\":\"VALIDATION_ERROR\",\"error_message\":\"请求参数验证失败\",\"details\":[{\"type\":\"missing\",\"loc\":[\"body\",\"source_id\"],\"msg\":\"Field required\",\"input\":null,\"url\":\"https://errors.pydantic.dev/2.5/v/missing\"}],\"timestamp\":1757383242.48268}"
+    },
+    {
+      "test_name": "文件从MinIO下载",
+      "status": "SKIPPED",
+      "timestamp": "2025-09-09T10:00:42.484244",
+      "details": {},
+      "error": "没有可用的文件ID"
+    },
+    {
+      "test_name": "多文件操作",
+      "status": "FAILED",
+      "timestamp": "2025-09-09T10:00:42.496565",
+      "details": {
+        "target_files": 5,
+        "successful_uploads": 0,
+        "upload_success_rate": 0.0,
+        "uploaded_file_ids": []
+      },
+      "error": "批量上传不完整: 0/5"
+    },
+    {
+      "test_name": "存储配额和限制",
+      "status": "FAILED",
+      "timestamp": "2025-09-09T10:00:42.509392",
+      "details": {},
+      "error": "意外响应: HTTP 422"
+    }
+  ]
+}

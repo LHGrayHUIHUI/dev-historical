@@ -1,0 +1,45 @@
+{
+  "test_type": "mongodb_integration",
+  "execution_time": "2025-09-09T09:58:26.827480",
+  "results": [
+    {
+      "test_name": "MongoDB连接测试",
+      "status": "PASSED",
+      "timestamp": "2025-09-09T09:58:26.808616",
+      "details": {
+        "connection_status": "connected",
+        "response_time": "<unknowns",
+        "health_check_passed": true
+      },
+      "error": null
+    },
+    {
+      "test_name": "MongoDB CRUD操作",
+      "status": "FAILED",
+      "timestamp": "2025-09-09T09:58:26.813429",
+      "details": {},
+      "error": "操作流程未完整完成"
+    },
+    {
+      "test_name": "MongoDB查询操作",
+      "status": "FAILED",
+      "timestamp": "2025-09-09T09:58:26.819061",
+      "details": {},
+      "error": "搜索功能未正常工作"
+    },
+    {
+      "test_name": "MongoDB性能测试",
+      "status": "FAILED",
+      "timestamp": "2025-09-09T09:58:26.827070",
+      "details": {
+        "batch_size": 10,
+        "successful_creates": 0,
+        "total_time": 0.008,
+        "average_time_per_doc": 0.001,
+        "success_rate": 0.0,
+        "performance_acceptable": true
+      },
+      "error": "性能不达标: 0/10 成功, 用时0.01秒"
+    }
+  ]
+}

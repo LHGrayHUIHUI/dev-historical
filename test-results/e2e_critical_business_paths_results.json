@@ -1,0 +1,155 @@
+{
+  "test_type": "e2e_critical_business_paths",
+  "execution_time": "2025-09-09T10:12:38.290004",
+  "results": [
+    {
+      "test_name": "系统就绪状态检查",
+      "status": "PASSED",
+      "timestamp": "2025-09-09T10:12:38.279140",
+      "duration": 0.024507999420166016,
+      "details": {
+        "system_status": {
+          "file_processor": {
+            "healthy": true,
+            "processors_ready": true,
+            "available_processors": [
+              "pdf",
+              "word",
+              "image",
+              "html"
+            ]
+          },
+          "storage_service": {
+            "healthy": true,
+            "service_info": {}
+          }
+        },
+        "healthy_services": 2,
+        "total_services": 2,
+        "readiness_score": 100.0,
+        "e2e_ready": true
+      },
+      "error": null
+    },
+    {
+      "test_name": "完整文档处理流程",
+      "status": "FAILED",
+      "timestamp": "2025-09-09T10:12:38.282590",
+      "duration": 0.003422975540161133,
+      "details": {
+        "workflow_status": "failed",
+        "total_duration": 0.003,
+        "processing_details": {
+          "file_processing_success": true,
+          "processing_duration": 0.003,
+          "original_size": 947,
+          "extracted_size": 0,
+          "content_integrity_score": 0.0,
+          "integrity_checks": {
+            "title_extracted": false,
+            "content_structure": false,
+            "historical_details": false,
+            "special_chars": false,
+            "chinese_content": false
+          },
+          "file_info": {},
+          "detected_encoding": "unknown"
+        },
+        "business_value_delivered": false
+      },
+      "error": "文档处理质量不达标或处理失败"
+    },
+    {
+      "test_name": "批量历史文档处理",
+      "status": "FAILED",
+      "timestamp": "2025-09-09T10:12:38.286805",
+      "duration": 0.004194974899291992,
+      "details": {
+        "batch_processing_summary": {
+          "total_documents": 3,
+          "successful_processing": 3,
+          "success_rate": 100.0,
+          "average_quality_score": 0.0,
+          "total_processing_time": 0.004,
+          "average_time_per_doc": 0.001
+        },
+        "individual_results": [
+          {
+            "filename": "tang_poetry_analysis.txt",
+            "success": true,
+            "quality_score": 0.0,
+            "content_length": 0,
+            "key_concepts_found": 0
+          },
+          {
+            "filename": "ming_dynasty_economy.txt",
+            "success": true,
+            "quality_score": 0.0,
+            "content_length": 0,
+            "key_concepts_found": 0
+          },
+          {
+            "filename": "qing_dynasty_culture.txt",
+            "success": true,
+            "quality_score": 0.0,
+            "content_length": 0,
+            "key_concepts_found": 0
+          }
+        ],
+        "business_value": {
+          "historical_content_processed": true,
+          "multi_period_coverage": true,
+          "batch_efficiency_acceptable": true
+        }
+      },
+      "error": "批量处理质量不达标: 100.0%成功率, 0.0%平均质量"
+    },
+    {
+      "test_name": "用户使用场景模拟",
+      "status": "PASSED",
+      "timestamp": "2025-09-09T10:12:38.289674",
+      "duration": 0.002847909927368164,
+      "details": {
+        "user_journey_analysis": {
+          "total_steps": 3,
+          "successful_steps": 2,
+          "partial_success_steps": 1,
+          "overall_success_rate": 83.33,
+          "average_user_satisfaction": 0.0,
+          "total_user_time": 0.003
+        },
+        "step_by_step_results": [
+          {
+            "step": "system_health_check",
+            "status": "success",
+            "duration": 0.001,
+            "user_experience": "系统运行正常，可以上传文件"
+          },
+          {
+            "step": "check_supported_formats",
+            "status": "success",
+            "duration": 0.001,
+            "user_experience": "可以上传的格式: 格式信息获取成功"
+          },
+          {
+            "step": "upload_and_process_document",
+            "status": "partial_success",
+            "duration": 0.001,
+            "user_experience": "文档处理完成，内容识别准确度: 0.0%",
+            "satisfaction_score": 0.0,
+            "extracted_elements": {
+              "research_topic": false,
+              "trade_goods": false,
+              "trade_routes": false,
+              "historical_context": false,
+              "research_info": false
+            }
+          }
+        ],
+        "user_experience_rating": "good"
+      },
+      "error": null
+    }
+  ],
+  "artifacts_count": 2
+}

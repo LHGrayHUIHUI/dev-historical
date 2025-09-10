@@ -14,23 +14,19 @@ from unittest.mock import AsyncMock, MagicMock
 # 导入应用和依赖
 from src.main import app
 from src.config.settings import Settings, get_settings
-from src.database.database import DatabaseManager, get_database_manager
+# from src.database.database import DatabaseManager, get_database_manager  # file-processor 服务没有数据库
 
 
 # 测试配置
 @pytest.fixture(scope="session")
 def test_settings():
-    """测试配置"""
+    """测试配置 - file-processor是无状态服务，不需要数据库配置"""
     return Settings(
         service={
             "environment": "testing",
-            "secret_key": "test-secret-key",
-            "cors_origins": ["http://testserver"]
-        },
-        database={
-            "mongodb_url": "mongodb://localhost:27017",
-            "mongodb_db_name": "historical_text_test",
-            "redis_url": "redis://localhost:6379/1"  # 使用测试数据库
+            "secret_key": "test-secret-key", 
+            "cors_origins": ["http://testserver"],
+            "service_name": "file-processor-test"
         },
         logging={
             "log_level": "DEBUG"
@@ -38,33 +34,14 @@ def test_settings():
     )
 
 
-# 模拟数据库管理器
-@pytest.fixture
-async def mock_db_manager():
-    """模拟数据库管理器"""
-    mock_manager = AsyncMock(spec=DatabaseManager)
-    mock_collection = AsyncMock()
-    
-    # 设置默认返回值
-    mock_manager.get_mongodb_collection.return_value = mock_collection
-    mock_manager.health_check.return_value = {
-        "mongodb": {"status": "connected", "latency": 10.5},
-        "redis": {"status": "connected", "latency": 2.3}
-    }
-    
-    # 模拟Redis客户端
-    mock_redis = AsyncMock()
-    mock_manager.get_redis_client.return_value = mock_redis
-    
-    return mock_manager
+# file-processor 服务是无状态服务，不需要数据库管理器
 
 
 # 应用依赖注入覆盖
 @pytest.fixture
-def app_with_mocks(test_settings, mock_db_manager):
+def app_with_mocks(test_settings):
     """带模拟依赖的应用"""
     app.dependency_overrides[get_settings] = lambda: test_settings
-    app.dependency_overrides[get_database_manager] = lambda: mock_db_manager
     
     yield app
     
