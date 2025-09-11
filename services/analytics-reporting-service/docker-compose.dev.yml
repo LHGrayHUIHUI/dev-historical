@@ -1,0 +1,231 @@
+# 分析报告服务开发环境Docker Compose配置
+version: '3.8'
+
+services:
+  # 分析报告服务
+  analytics-reporting-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: analytics-reporting-dev
+    ports:
+      - "${PORT:-8099}:8099"
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@postgres-analytics:5432/historical_text_analytics
+      - DB_INFLUXDB_URL=http://influxdb-analytics:8086
+      - DB_CLICKHOUSE_HOST=clickhouse-analytics
+      - DB_REDIS_URL=redis://redis-analytics:6379/6
+      - CELERY_BROKER_URL=redis://redis-analytics:6379/7
+      - CELERY_RESULT_BACKEND=redis://redis-analytics:6379/8
+      # 外部服务URLs（开发环境）
+      - SERVICE_STORAGE_SERVICE_URL=http://host.docker.internal:8002
+      - SERVICE_CONTENT_PUBLISHING_URL=http://host.docker.internal:8094
+      - SERVICE_ACCOUNT_MANAGEMENT_URL=http://host.docker.internal:8091
+      - SERVICE_SCHEDULING_SERVICE_URL=http://host.docker.internal:8095
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+      - ./models:/app/models
+    depends_on:
+      - postgres-analytics
+      - redis-analytics
+      - influxdb-analytics
+      - clickhouse-analytics
+    networks:
+      - analytics-network
+      - external-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo 'Development: Waiting for databases...' &&
+        sleep 10 &&
+        python -c 'import asyncio; from src.models import init_database; asyncio.run(init_database())' &&
+        echo 'Starting development server...' &&
+        python -m uvicorn src.main:app --host 0.0.0.0 --port 8099 --reload
+      "
+
+  # PostgreSQL 关系数据库
+  postgres-analytics:
+    image: postgres:15-alpine
+    container_name: postgres-analytics-dev
+    environment:
+      - POSTGRES_DB=historical_text_analytics
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_analytics_data:/var/lib/postgresql/data
+      - ./scripts/init_postgres.sql:/docker-entrypoint-initdb.d/01-init.sql
+    ports:
+      - "${POSTGRES_PORT:-5439}:5432"
+    networks:
+      - analytics-network
+    restart: unless-stopped
+
+  # InfluxDB 时序数据库
+  influxdb-analytics:
+    image: influxdb:2.7-alpine
+    container_name: influxdb-analytics-dev
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=password123
+      - DOCKER_INFLUXDB_INIT_ORG=historical-text
+      - DOCKER_INFLUXDB_INIT_BUCKET=analytics-metrics
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=analytics-token
+    volumes:
+      - influxdb_analytics_data:/var/lib/influxdb2
+      - influxdb_analytics_config:/etc/influxdb2
+    ports:
+      - "${INFLUXDB_PORT:-8086}:8086"
+    networks:
+      - analytics-network
+    restart: unless-stopped
+
+  # ClickHouse OLAP数据库
+  clickhouse-analytics:
+    image: clickhouse/clickhouse-server:23.8-alpine
+    container_name: clickhouse-analytics-dev
+    environment:
+      - CLICKHOUSE_DB=analytics
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+    volumes:
+      - clickhouse_analytics_data:/var/lib/clickhouse
+      - ./scripts/init_clickhouse.sql:/docker-entrypoint-initdb.d/01-init.sql
+    ports:
+      - "${CLICKHOUSE_PORT:-9000}:9000"
+      - "${CLICKHOUSE_HTTP_PORT:-8123}:8123"
+    networks:
+      - analytics-network
+    restart: unless-stopped
+
+  # Redis 缓存和消息队列
+  redis-analytics:
+    image: redis:7-alpine
+    container_name: redis-analytics-dev
+    ports:
+      - "${REDIS_PORT:-6383}:6379"
+    volumes:
+      - redis_analytics_data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - analytics-network
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf --appendonly yes
+
+  # Celery Worker
+  celery-worker-analytics:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: celery-worker-analytics-dev
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@postgres-analytics:5432/historical_text_analytics
+      - DB_REDIS_URL=redis://redis-analytics:6379/6
+      - CELERY_BROKER_URL=redis://redis-analytics:6379/7
+      - CELERY_RESULT_BACKEND=redis://redis-analytics:6379/8
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+      - ./models:/app/models
+    depends_on:
+      - postgres-analytics
+      - redis-analytics
+    networks:
+      - analytics-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo 'Waiting for Redis...' &&
+        sleep 15 &&
+        echo 'Starting Celery worker...' &&
+        celery -A src.scheduler.celery_app worker -Q analytics,reports -l info --concurrency=2
+      "
+
+  # Celery Beat 调度器
+  celery-beat-analytics:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: celery-beat-analytics-dev
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@postgres-analytics:5432/historical_text_analytics
+      - DB_REDIS_URL=redis://redis-analytics:6379/6
+      - CELERY_BROKER_URL=redis://redis-analytics:6379/7
+      - CELERY_RESULT_BACKEND=redis://redis-analytics:6379/8
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+      - celery_beat_data:/app/celerybeat
+    depends_on:
+      - postgres-analytics
+      - redis-analytics
+    networks:
+      - analytics-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo 'Waiting for Redis...' &&
+        sleep 20 &&
+        echo 'Starting Celery Beat...' &&
+        celery -A src.scheduler.celery_app beat -l info --pidfile=/app/celerybeat/beat.pid --schedule=/app/celerybeat/beat-schedule
+      "
+
+  # Redis Commander (Redis管理界面)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander-analytics
+    environment:
+      - REDIS_HOSTS=analytics:redis-analytics:6379
+    ports:
+      - "${REDIS_COMMANDER_PORT:-8084}:8081"
+    depends_on:
+      - redis-analytics
+    networks:
+      - analytics-network
+    restart: unless-stopped
+
+  # Grafana (数据可视化) - 可选
+  grafana-analytics:
+    image: grafana/grafana:latest
+    container_name: grafana-analytics-dev
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_analytics_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    depends_on:
+      - influxdb-analytics
+    networks:
+      - analytics-network
+    restart: unless-stopped
+
+volumes:
+  postgres_analytics_data:
+  influxdb_analytics_data:
+  influxdb_analytics_config:
+  clickhouse_analytics_data:
+  redis_analytics_data:
+  celery_beat_data:
+  grafana_analytics_data:
+
+networks:
+  analytics-network:
+    driver: bridge
+    internal: true
+  external-network:
+    driver: bridge

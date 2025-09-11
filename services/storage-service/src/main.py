@@ -474,6 +474,11 @@ async def readiness_check():
 app.include_router(data_router)  # 文件处理相关路由
 app.include_router(content_router, prefix="/api/v1")  # 内容管理路由
 
+# 导入并注册AI模型配置路由
+from .controllers.ai_models_controller import create_ai_models_controller
+ai_models_controller = create_ai_models_controller()
+app.include_router(ai_models_controller.router)  # AI模型配置路由
+
 # 添加Prometheus指标端点
 if settings.metrics_enabled:
     metrics_app = make_asgi_app()

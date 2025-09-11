@@ -1,0 +1,83 @@
+# 分析报告服务依赖
+
+# Web框架
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# 数据处理
+pandas==2.1.4
+numpy==1.25.2
+scipy==1.11.4
+
+# 机器学习
+scikit-learn==1.3.2
+tensorflow==2.15.0
+torch==2.1.2
+prophet==1.1.5
+statsmodels==0.14.1
+
+# 数据库
+asyncpg==0.29.0
+sqlalchemy[asyncio]==2.0.23
+alembic==1.13.1
+psycopg2-binary==2.9.9
+redis==5.0.1
+clickhouse-driver==0.2.6
+influxdb-client==1.38.0
+
+# 消息队列
+celery==5.3.4
+kombu==5.3.4
+redis==5.0.1
+pika==1.3.2
+
+# 数据可视化和报告
+matplotlib==3.8.2
+seaborn==0.13.0
+plotly==5.17.0
+reportlab==4.0.7
+openpyxl==3.1.2
+xlsxwriter==3.1.9
+Pillow==10.1.0
+
+# 大数据处理
+pyspark==3.5.0
+dask[complete]==2023.12.1
+
+# HTTP客户端
+httpx==0.25.2
+aiohttp==3.9.1
+
+# 工具类
+python-dateutil==2.8.2
+pytz==2023.3
+schedule==1.2.0
+crontab==1.0.1
+
+# 测试
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+httpx==0.25.2
+
+# 开发工具
+black==23.12.0
+isort==5.13.2
+flake8==6.1.0
+mypy==1.8.0
+
+# 监控和日志
+prometheus-client==0.19.0
+loguru==0.7.2
+structlog==23.2.0
+
+# 安全
+cryptography==41.0.8
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# 配置和环境
+python-dotenv==1.0.0

@@ -1,0 +1,61 @@
+{
+  "test_suite": "Story 3.1 AI Model Service Gemini Integration Test",
+  "test_date": "2025-09-10",
+  "test_time": "2025-09-10T14:33:36.641218",
+  "duration_seconds": 1.699754,
+  "summary": {
+    "total_tests": 6,
+    "passed": 2,
+    "failed": 4,
+    "expected_failures": 0,
+    "success_rate": "33.3%"
+  },
+  "gemini_config": {
+    "api_key": "AIzaSyCrpXFxpEbsKjrH...",
+    "api_base": "https://generativelanguage.googleapis.com/v1beta",
+    "model": "gemini-1.5-flash"
+  },
+  "test_results": [
+    {
+      "test_name": "gemini_adapter_import",
+      "status": "failed",
+      "timestamp": "2025-09-10T14:33:37.050297",
+      "error": "'GeminiAdapter' object has no attribute 'provider'",
+      "traceback": "Traceback (most recent call last):\n  File \"/Users/yjlh/Documents/code/Historical Text Project/test-results/2025-09-10/ai-model-service-gemini-test.py\", line 61, in test_gemini_adapter_import\n    assert adapter.provider == ModelProvider.GEMINI\nAttributeError: 'GeminiAdapter' object has no attribute 'provider'\n"
+    },
+    {
+      "test_name": "model_config_creation",
+      "status": "passed",
+      "timestamp": "2025-09-10T14:33:37.050316",
+      "message": "模型和账户配置创建成功"
+    },
+    {
+      "test_name": "adapter_factory_gemini",
+      "status": "failed",
+      "timestamp": "2025-09-10T14:33:37.050869",
+      "error": "'AdapterFactory' object has no attribute 'create_adapter'",
+      "traceback": "Traceback (most recent call last):\n  File \"/Users/yjlh/Documents/code/Historical Text Project/test-results/2025-09-10/ai-model-service-gemini-test.py\", line 128, in test_adapter_factory_gemini\n    adapter = factory.create_adapter(ModelProvider.GEMINI)\nAttributeError: 'AdapterFactory' object has no attribute 'create_adapter'\n"
+    },
+    {
+      "test_name": "gemini_direct_api_call",
+      "status": "passed",
+      "timestamp": "2025-09-10T14:33:38.340235",
+      "message": "Gemini API调用成功",
+      "response_content": "Test successful\n"
+    },
+    {
+      "test_name": "gemini_adapter_chat_completion",
+      "status": "failed",
+      "timestamp": "2025-09-10T14:33:38.340874",
+      "error": "'GeminiAdapter' object has no attribute '_convert_messages'",
+      "traceback": "Traceback (most recent call last):\n  File \"/Users/yjlh/Documents/code/Historical Text Project/test-results/2025-09-10/ai-model-service-gemini-test.py\", line 246, in test_gemini_adapter_chat_completion\n    converted_messages = adapter._convert_messages(messages)\nAttributeError: 'GeminiAdapter' object has no attribute '_convert_messages'\n"
+    },
+    {
+      "test_name": "message_format_conversion",
+      "status": "failed",
+      "timestamp": "2025-09-10T14:33:38.340961",
+      "error": "'GeminiAdapter' object has no attribute '_convert_messages'",
+      "traceback": "Traceback (most recent call last):\n  File \"/Users/yjlh/Documents/code/Historical Text Project/test-results/2025-09-10/ai-model-service-gemini-test.py\", line 287, in test_message_format_conversion\n    converted = adapter._convert_messages(messages)\nAttributeError: 'GeminiAdapter' object has no attribute '_convert_messages'\n"
+    }
+  ]
+}

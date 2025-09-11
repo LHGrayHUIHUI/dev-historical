@@ -1,0 +1,260 @@
+# 自动内容调度服务开发环境
+version: '3.8'
+
+services:
+  # 主服务
+  automated-content-scheduling-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scheduling-service-dev
+    ports:
+      - "8095:8095"
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@postgres-scheduling:5432/historical_text_scheduling
+      - REDIS_URL=redis://redis-scheduling:6379/3
+      - CELERY_BROKER_URL=redis://redis-scheduling:6379/4
+      - CELERY_RESULT_BACKEND=redis://redis-scheduling:6379/5
+      # 外部服务URL
+      - ACCOUNT_MANAGEMENT_SERVICE_URL=http://host.docker.internal:8091
+      - CONTENT_PUBLISHING_SERVICE_URL=http://host.docker.internal:8094
+      - STORAGE_SERVICE_URL=http://host.docker.internal:8002
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+      - ./models:/app/models
+      - ./test-results:/app/test-results
+    depends_on:
+      - postgres-scheduling
+      - redis-scheduling
+    networks:
+      - scheduling-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        until python -c 'import asyncpg; import asyncio; asyncio.run(asyncpg.connect(\"postgresql://postgres:password@postgres-scheduling:5432/historical_text_scheduling\"))' 2>/dev/null; do
+          echo 'Database not ready, waiting...';
+          sleep 2;
+        done &&
+        echo 'Database is ready!' &&
+        python -m uvicorn src.main:app --host 0.0.0.0 --port 8095 --reload
+      "
+
+  # PostgreSQL数据库
+  postgres-scheduling:
+    image: postgres:15-alpine
+    container_name: postgres-scheduling-dev
+    environment:
+      - POSTGRES_DB=historical_text_scheduling
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_scheduling_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    ports:
+      - "5436:5432"
+    networks:
+      - scheduling-network
+    restart: unless-stopped
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c max_connections=200
+
+  # Redis缓存和消息队列
+  redis-scheduling:
+    image: redis:7-alpine
+    container_name: redis-scheduling-dev
+    ports:
+      - "6382:6379"
+    volumes:
+      - redis_scheduling_data:/data
+    networks:
+      - scheduling-network
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+
+  # Celery Worker - 调度任务
+  celery-worker-scheduling:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery-worker-scheduling-dev
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@postgres-scheduling:5432/historical_text_scheduling
+      - REDIS_URL=redis://redis-scheduling:6379/3
+      - CELERY_BROKER_URL=redis://redis-scheduling:6379/4
+      - CELERY_RESULT_BACKEND=redis://redis-scheduling:6379/5
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+      - ./models:/app/models
+    depends_on:
+      - postgres-scheduling
+      - redis-scheduling
+    networks:
+      - scheduling-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo 'Waiting for Redis...' &&
+        until redis-cli -h redis-scheduling ping 2>/dev/null; do
+          echo 'Redis not ready, waiting...';
+          sleep 2;
+        done &&
+        echo 'Starting Celery worker for scheduling queue...' &&
+        celery -A src.scheduler.celery_app worker -Q scheduling -l info --concurrency=4
+      "
+
+  # Celery Worker - 发布任务  
+  celery-worker-publishing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery-worker-publishing-dev
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@postgres-scheduling:5432/historical_text_scheduling
+      - REDIS_URL=redis://redis-scheduling:6379/3
+      - CELERY_BROKER_URL=redis://redis-scheduling:6379/4
+      - CELERY_RESULT_BACKEND=redis://redis-scheduling:6379/5
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+    depends_on:
+      - postgres-scheduling
+      - redis-scheduling
+    networks:
+      - scheduling-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo 'Waiting for Redis...' &&
+        until redis-cli -h redis-scheduling ping 2>/dev/null; do
+          echo 'Redis not ready, waiting...';
+          sleep 2;
+        done &&
+        echo 'Starting Celery worker for publishing queue...' &&
+        celery -A src.scheduler.celery_app worker -Q publishing -l info --concurrency=6
+      "
+
+  # Celery Worker - 优化任务
+  celery-worker-optimization:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery-worker-optimization-dev
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@postgres-scheduling:5432/historical_text_scheduling
+      - REDIS_URL=redis://redis-scheduling:6379/3
+      - CELERY_BROKER_URL=redis://redis-scheduling:6379/4
+      - CELERY_RESULT_BACKEND=redis://redis-scheduling:6379/5
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+      - ./models:/app/models
+    depends_on:
+      - postgres-scheduling
+      - redis-scheduling
+    networks:
+      - scheduling-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo 'Waiting for Redis...' &&
+        until redis-cli -h redis-scheduling ping 2>/dev/null; do
+          echo 'Redis not ready, waiting...';
+          sleep 2;
+        done &&
+        echo 'Starting Celery worker for optimization queue...' &&
+        celery -A src.scheduler.celery_app worker -Q optimization -l info --concurrency=2
+      "
+
+  # Celery Beat调度器
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery-beat-dev
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@postgres-scheduling:5432/historical_text_scheduling
+      - REDIS_URL=redis://redis-scheduling:6379/3
+      - CELERY_BROKER_URL=redis://redis-scheduling:6379/4
+      - CELERY_RESULT_BACKEND=redis://redis-scheduling:6379/5
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+    depends_on:
+      - postgres-scheduling
+      - redis-scheduling
+    networks:
+      - scheduling-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo 'Waiting for Redis...' &&
+        until redis-cli -h redis-scheduling ping 2>/dev/null; do
+          echo 'Redis not ready, waiting...';
+          sleep 2;
+        done &&
+        echo 'Starting Celery Beat scheduler...' &&
+        celery -A src.scheduler.celery_app beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+      "
+
+  # Flower - Celery监控
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flower-dev
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://redis-scheduling:6379/4
+      - CELERY_RESULT_BACKEND=redis://redis-scheduling:6379/5
+    depends_on:
+      - redis-scheduling
+    networks:
+      - scheduling-network
+    restart: unless-stopped
+    command: celery -A src.scheduler.celery_app flower --port=5555
+
+  # Redis Commander - Redis管理工具
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander-dev
+    environment:
+      - REDIS_HOSTS=local:redis-scheduling:6379
+      - HTTP_USER=admin
+      - HTTP_PASSWORD=admin
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis-scheduling
+    networks:
+      - scheduling-network
+    restart: unless-stopped
+
+volumes:
+  postgres_scheduling_data:
+  redis_scheduling_data:
+
+networks:
+  scheduling-network:
+    driver: bridge

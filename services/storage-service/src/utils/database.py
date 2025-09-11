@@ -93,9 +93,24 @@ async def check_database_connection() -> bool:
         bool: 连接是否正常
     """
     try:
-        async with get_database_session() as session:
-            await session.execute("SELECT 1")
-            return True
+        from sqlalchemy import text
+        from sqlalchemy.ext.asyncio import create_async_engine
+        
+        settings = get_settings()
+        
+        # 创建临时引擎进行连接测试
+        engine = create_async_engine(
+            settings.database_url,
+            pool_pre_ping=True,
+            pool_recycle=300
+        )
+        
+        async with engine.begin() as conn:
+            await conn.execute(text("SELECT 1"))
+        
+        await engine.dispose()
+        return True
+        
     except Exception as e:
         logger.error(f"数据库连接检查失败: {e}")
         return False

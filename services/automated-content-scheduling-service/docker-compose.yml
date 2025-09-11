@@ -1,0 +1,327 @@
+# 自动内容调度服务生产环境
+version: '3.8'
+
+services:
+  # 主服务
+  automated-content-scheduling-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scheduling-service-prod
+    ports:
+      - "8095:8095"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://postgres:password@postgres-scheduling:5432/historical_text_scheduling}
+      - REDIS_URL=${REDIS_URL:-redis://redis-scheduling:6379/3}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis-scheduling:6379/4}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis-scheduling:6379/5}
+      - SECRET_KEY=${SECRET_KEY:-your-production-secret-key}
+      # 外部服务URL
+      - ACCOUNT_MANAGEMENT_SERVICE_URL=${ACCOUNT_MANAGEMENT_SERVICE_URL:-http://account-management-service:8091}
+      - CONTENT_PUBLISHING_SERVICE_URL=${CONTENT_PUBLISHING_SERVICE_URL:-http://content-publishing-service:8094}
+      - STORAGE_SERVICE_URL=${STORAGE_SERVICE_URL:-http://storage-service:8002}
+    volumes:
+      - ./logs:/app/logs
+      - ./models:/app/models
+    depends_on:
+      - postgres-scheduling
+      - redis-scheduling
+    networks:
+      - scheduling-network
+      - external-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'  
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8095/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    command: >
+      sh -c "
+        echo 'Production: Waiting for database...' &&
+        until python -c 'import asyncpg; import asyncio; asyncio.run(asyncpg.connect(\"${DATABASE_URL:-postgresql://postgres:password@postgres-scheduling:5432/historical_text_scheduling}\"))' 2>/dev/null; do
+          echo 'Database not ready, waiting...';
+          sleep 5;
+        done &&
+        echo 'Database is ready! Starting production server...' &&
+        python -m uvicorn src.main:app --host 0.0.0.0 --port 8095 --workers 4 --log-level warning
+      "
+
+  # PostgreSQL数据库
+  postgres-scheduling:
+    image: postgres:15-alpine
+    container_name: postgres-scheduling-prod
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-historical_text_scheduling}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+    volumes:
+      - postgres_scheduling_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    ports:
+      - "${POSTGRES_PORT:-5436}:5432"
+    networks:
+      - scheduling-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c max_connections=300
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+
+  # Redis缓存和消息队列
+  redis-scheduling:
+    image: redis:7-alpine
+    container_name: redis-scheduling-prod
+    ports:
+      - "${REDIS_PORT:-6382}:6379"
+    volumes:
+      - redis_scheduling_data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - scheduling-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    command: >
+      redis-server /usr/local/etc/redis/redis.conf
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 400mb
+      --maxmemory-policy allkeys-lru
+      --tcp-keepalive 60
+
+  # Celery Worker - 调度任务
+  celery-worker-scheduling:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery-worker-scheduling-prod
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://postgres:password@postgres-scheduling:5432/historical_text_scheduling}
+      - REDIS_URL=${REDIS_URL:-redis://redis-scheduling:6379/3}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis-scheduling:6379/4}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis-scheduling:6379/5}
+    volumes:
+      - ./logs:/app/logs
+      - ./models:/app/models
+    depends_on:
+      - postgres-scheduling
+      - redis-scheduling
+    networks:
+      - scheduling-network
+      - external-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    command: >
+      sh -c "
+        echo 'Production: Waiting for Redis...' &&
+        until redis-cli -h redis-scheduling ping 2>/dev/null; do
+          echo 'Redis not ready, waiting...';
+          sleep 3;
+        done &&
+        echo 'Starting Celery worker for scheduling queue...' &&
+        celery -A src.scheduler.celery_app worker -Q scheduling -l warning --concurrency=6 --max-tasks-per-child=1000
+      "
+
+  # Celery Worker - 发布任务
+  celery-worker-publishing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery-worker-publishing-prod
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://postgres:password@postgres-scheduling:5432/historical_text_scheduling}
+      - REDIS_URL=${REDIS_URL:-redis://redis-scheduling:6379/3}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis-scheduling:6379/4}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis-scheduling:6379/5}
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - postgres-scheduling
+      - redis-scheduling
+    networks:
+      - scheduling-network
+      - external-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1.5G
+        reservations:
+          cpus: '1.0'
+          memory: 768M
+    command: >
+      sh -c "
+        echo 'Production: Waiting for Redis...' &&
+        until redis-cli -h redis-scheduling ping 2>/dev/null; do
+          echo 'Redis not ready, waiting...';
+          sleep 3;
+        done &&
+        echo 'Starting Celery worker for publishing queue...' &&
+        celery -A src.scheduler.celery_app worker -Q publishing -l warning --concurrency=8 --max-tasks-per-child=500
+      "
+
+  # Celery Worker - 优化任务
+  celery-worker-optimization:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery-worker-optimization-prod
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://postgres:password@postgres-scheduling:5432/historical_text_scheduling}
+      - REDIS_URL=${REDIS_URL:-redis://redis-scheduling:6379/3}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis-scheduling:6379/4}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis-scheduling:6379/5}
+    volumes:
+      - ./logs:/app/logs
+      - ./models:/app/models
+    depends_on:
+      - postgres-scheduling
+      - redis-scheduling
+    networks:
+      - scheduling-network
+      - external-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    command: >
+      sh -c "
+        echo 'Production: Waiting for Redis...' &&
+        until redis-cli -h redis-scheduling ping 2>/dev/null; do
+          echo 'Redis not ready, waiting...';
+          sleep 3;
+        done &&
+        echo 'Starting Celery worker for optimization queue...' &&
+        celery -A src.scheduler.celery_app worker -Q optimization -l warning --concurrency=3 --max-tasks-per-child=200
+      "
+
+  # Celery Beat调度器
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery-beat-prod
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://postgres:password@postgres-scheduling:5432/historical_text_scheduling}
+      - REDIS_URL=${REDIS_URL:-redis://redis-scheduling:6379/3}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis-scheduling:6379/4}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis-scheduling:6379/5}
+    volumes:
+      - ./logs:/app/logs
+      - celery_beat_data:/app/celerybeat
+    depends_on:
+      - postgres-scheduling
+      - redis-scheduling
+    networks:
+      - scheduling-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+    command: >
+      sh -c "
+        echo 'Production: Waiting for Redis...' &&
+        until redis-cli -h redis-scheduling ping 2>/dev/null; do
+          echo 'Redis not ready, waiting...';
+          sleep 3;
+        done &&
+        echo 'Starting Celery Beat scheduler...' &&
+        celery -A src.scheduler.celery_app beat -l warning --pidfile=/app/celerybeat/beat.pid --schedule=/app/celerybeat/beat-schedule
+      "
+
+  # Nginx反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-scheduling-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - automated-content-scheduling-service
+    networks:
+      - scheduling-network
+      - external-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+volumes:
+  postgres_scheduling_data:
+  redis_scheduling_data:
+  celery_beat_data:
+  nginx_logs:
+
+networks:
+  scheduling-network:
+    driver: bridge
+    internal: true
+  external-network:
+    driver: bridge

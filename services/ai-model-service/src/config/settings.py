@@ -19,16 +19,16 @@ class Settings(BaseSettings):
     service_name: str = Field("ai-model-service", description="服务名称")
     service_version: str = Field("1.0.0", description="服务版本")
     service_host: str = Field("0.0.0.0", description="服务监听地址")
-    service_port: int = Field(8007, description="服务端口")
+    service_port: int = Field(8000, description="服务端口")
     service_environment: str = Field("development", description="运行环境")
     debug: bool = Field(False, description="调试模式")
     
     # === 安全配置 ===
-    secret_key: str = Field(..., description="应用程序密钥")
-    jwt_secret_key: str = Field(..., description="JWT密钥")
+    secret_key: str = Field("dev-secret-key-change-in-production", description="应用程序密钥")
+    jwt_secret_key: str = Field("dev-jwt-secret-change-in-production", description="JWT密钥")
     jwt_algorithm: str = Field("HS256", description="JWT算法")
     jwt_expire_minutes: int = Field(60, description="JWT过期时间(分钟)")
-    encryption_key: str = Field(..., description="API密钥加密密钥")
+    encryption_key: str = Field("dev-encryption-key-32bytes-change", description="API密钥加密密钥")
     
     # === Storage Service 配置 ===
     storage_service_url: str = Field("http://localhost:8002", description="存储服务URL")

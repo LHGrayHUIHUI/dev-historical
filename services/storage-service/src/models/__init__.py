@@ -8,10 +8,15 @@ from .base import Base
 from .data_source import DataSource
 from .dataset import Dataset
 from .text_content import TextContent
+from .ai_models import AIModelConfig, SystemPromptTemplate, AIProviderEnum, ModelStatusEnum
 
 __all__ = [
     "Base",
     "DataSource", 
     "Dataset",
-    "TextContent"
+    "TextContent",
+    "AIModelConfig",
+    "SystemPromptTemplate", 
+    "AIProviderEnum",
+    "ModelStatusEnum"
 ]

@@ -1,0 +1,126 @@
+# Content Quality Assessment Service Dependencies
+# 内容质量评估服务依赖包
+
+# FastAPI Web框架
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic[email]==2.5.0
+pydantic-settings==2.1.0
+
+# HTTP客户端
+httpx==0.25.2
+aiofiles==23.2.1
+requests==2.31.0
+
+# 异步和并发处理
+asyncio-throttle==1.0.2
+aiometer==0.4.0
+tenacity==8.2.3
+
+# 缓存和数据库
+aioredis==2.0.1
+redis==5.0.1
+
+# NLP和机器学习
+spacy==3.7.2
+zh-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/zh_core_web_sm-3.7.0/zh_core_web_sm-3.7.0-py3-none-any.whl
+jieba==0.42.1
+textstat==0.7.3
+nltk==3.8.1
+
+# 深度学习和Transformers
+torch==2.1.1
+transformers==4.36.0
+sentence-transformers==2.2.2
+
+# 数据科学和统计
+numpy==1.24.4
+pandas==2.1.4
+scipy==1.11.4
+scikit-learn==1.3.2
+matplotlib==3.8.2
+seaborn==0.13.0
+
+# 语言检测和处理
+langdetect==1.0.9
+polyglot==16.7.4
+pycld2==0.41
+
+# 文本相似度和分析
+fuzzywuzzy==0.18.0
+python-Levenshtein==0.23.0
+gensim==4.3.2
+wordcloud==1.9.2
+
+# 时间和日期处理
+python-dateutil==2.8.2
+pytz==2023.3
+
+# 配置和环境管理
+python-dotenv==1.0.0
+pyyaml==6.0.1
+toml==0.10.2
+
+# 日志和监控
+structlog==23.2.0
+loguru==0.7.2
+prometheus-client==0.19.0
+
+# 安全和验证
+cryptography==41.0.7
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+python-multipart==0.0.6
+
+# 测试框架
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+httpx-testing==0.1.0
+
+# 代码质量
+black==23.11.0
+isort==5.12.0
+flake8==6.1.0
+mypy==1.7.1
+
+# 性能和内存监控
+psutil==5.9.6
+memory-profiler==0.61.0
+py-spy==0.3.14
+
+# JSON和数据序列化
+orjson==3.9.10
+msgpack==1.0.7
+
+# 实用工具
+click==8.1.7
+rich==13.7.0
+tqdm==4.66.1
+colorama==0.4.6
+
+# XML和HTML处理 (如果需要处理HTML内容)
+beautifulsoup4==4.12.2
+lxml==4.9.3
+
+# 正则表达式增强
+regex==2023.10.3
+
+# 数据验证
+cerberus==1.3.5
+schema==0.7.5
+
+# 并行处理
+joblib==1.3.2
+concurrent-futures==3.1.1
+
+# 时序分析
+statsmodels==0.14.0
+
+# 图像处理 (如果评估包含图像)
+Pillow==10.1.0
+
+# 编码检测
+chardet==5.2.0
+charset-normalizer==3.3.2

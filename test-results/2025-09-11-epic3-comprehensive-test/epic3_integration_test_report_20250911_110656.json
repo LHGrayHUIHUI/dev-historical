@@ -1,0 +1,351 @@
+{
+  "test_suite": "Epic 3 Comprehensive Integration Test",
+  "timestamp": "2025-09-11T11:06:56.478514",
+  "duration_seconds": 1.48,
+  "overall_status": "pass",
+  "summary": {
+    "total_services_tested": 3,
+    "total_tests": 5,
+    "passed_tests": 5,
+    "failed_tests": 0,
+    "success_rate": 100.0
+  },
+  "health_check_results": {
+    "ai_model": {
+      "status": "healthy",
+      "response": {
+        "status": "healthy",
+        "service": "ai-model-service",
+        "timestamp": "2025-09-11T03:06:55.013826",
+        "mode": "full"
+      }
+    },
+    "storage": {
+      "status": "healthy",
+      "response": {
+        "status": "healthy",
+        "service": "storage-service",
+        "version": "1.0.0",
+        "timestamp": 1757560015.0212517
+      }
+    },
+    "quality_control": {
+      "status": "healthy",
+      "response": {
+        "status": "healthy",
+        "service": "content-quality-control-service",
+        "version": "1.0.0",
+        "timestamp": "2025-09-11T03:06:55.031800"
+      }
+    },
+    "text_optimization": {
+      "status": "error",
+      "error": "[Errno 54] Connection reset by peer"
+    },
+    "content_merger": {
+      "status": "error",
+      "error": "[Errno 54] Connection reset by peer"
+    },
+    "quality_assessment": {
+      "status": "error",
+      "error": "[Errno 54] Connection reset by peer"
+    }
+  },
+  "detailed_test_results": [
+    {
+      "service": "ai_model_service",
+      "tests": [
+        {
+          "name": "chat_completion",
+          "status": "pass",
+          "response": {
+            "id": "gemini-578177dc",
+            "object": "chat.completion",
+            "created": 1757560016,
+            "model": "gemini-1.5-flash",
+            "provider": "gemini",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "《史记》是司马迁写的，一部完整的历史书。\n"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 24,
+              "completion_tokens": 15,
+              "total_tokens": 39
+            },
+            "metadata": {
+              "response_time_ms": 1316.0147666931152,
+              "model_used": "gemini-1.5-flash",
+              "provider_used": "gemini",
+              "routing_strategy": "direct",
+              "simplified_mode": true
+            }
+          },
+          "details": "成功生成回复，模型: gemini-1.5-flash"
+        },
+        {
+          "name": "providers_list",
+          "status": "pass",
+          "response": {
+            "supported_providers": [
+              "openai",
+              "claude",
+              "baidu",
+              "alibaba",
+              "tencent",
+              "zhipu",
+              "gemini"
+            ],
+            "provider_details": {
+              "openai": {
+                "name": "OpenAI",
+                "description": "OpenAI GPT系列模型",
+                "models": [
+                  "gpt-3.5-turbo",
+                  "gpt-4",
+                  "gpt-4-turbo"
+                ]
+              },
+              "claude": {
+                "name": "Anthropic Claude",
+                "description": "Anthropic Claude系列模型",
+                "models": [
+                  "claude-3-sonnet",
+                  "claude-3-opus",
+                  "claude-3-haiku"
+                ]
+              },
+              "baidu": {
+                "name": "百度文心一言",
+                "description": "百度文心大模型",
+                "models": [
+                  "ernie-4.0-turbo",
+                  "ernie-3.5",
+                  "ernie-turbo"
+                ]
+              },
+              "alibaba": {
+                "name": "阿里云通义千问",
+                "description": "阿里云通义千问大模型",
+                "models": [
+                  "qwen-plus",
+                  "qwen-turbo",
+                  "qwen-max"
+                ]
+              },
+              "tencent": {
+                "name": "腾讯混元",
+                "description": "腾讯混元大模型",
+                "models": [
+                  "hunyuan-pro",
+                  "hunyuan-standard",
+                  "hunyuan-lite"
+                ]
+              },
+              "zhipu": {
+                "name": "智谱AI",
+                "description": "智谱GLM系列模型",
+                "models": [
+                  "glm-4",
+                  "glm-4-air",
+                  "glm-3-turbo"
+                ]
+              }
+            }
+          },
+          "details": "支持 0 个提供商"
+        }
+      ],
+      "overall_status": "pass"
+    },
+    {
+      "service": "quality_control_service",
+      "tests": [
+        {
+          "name": "quality_check",
+          "status": "pass",
+          "response": {
+            "success": true,
+            "message": "质量检测完成",
+            "timestamp": "2025-09-11T03:06:56.396629",
+            "data": {
+              "check_id": "e374332d-0498-45ce-9d95-fb93105077db",
+              "overall_score": 91.8,
+              "status": "pass",
+              "quality_analysis": {
+                "grammar_score": 100.0,
+                "logic_score": 90.0,
+                "format_score": 95.0,
+                "factual_score": 85.0,
+                "academic_score": 88.0
+              },
+              "issues": [],
+              "suggestions": [],
+              "auto_fixes": [],
+              "processing_time_ms": 8
+            }
+          },
+          "details": "质量分数: 91.8"
+        },
+        {
+          "name": "compliance_check",
+          "status": "pass",
+          "response": {
+            "success": true,
+            "message": "合规检测完成",
+            "timestamp": "2025-09-11T03:06:56.404059",
+            "data": {
+              "check_id": "e5080ca5-b2ff-4b61-9320-d67d1ba2191c",
+              "compliance_status": "pass",
+              "risk_score": 0,
+              "violations": [],
+              "policy_compliance": {
+                "sensitive_word_check": "pass"
+              },
+              "recommendations": [],
+              "processing_time_ms": 2
+            }
+          },
+          "details": "合规状态: pass"
+        }
+      ],
+      "overall_status": "pass"
+    },
+    {
+      "service": "storage_service_ai_models",
+      "tests": [
+        {
+          "name": "get_ai_model_configs",
+          "status": "pass",
+          "response": {
+            "models": [
+              {
+                "id": "b6945633-9e8e-4955-aa37-a8ff819aed5a",
+                "alias": "test-gemini-model",
+                "provider": "gemini",
+                "model_name": "gemini-1.5-flash",
+                "display_name": null,
+                "description": null,
+                "has_api_key": false,
+                "api_base": null,
+                "api_version": null,
+                "max_tokens": 4096,
+                "context_window": null,
+                "default_temperature": 0.7,
+                "default_top_p": null,
+                "is_local": false,
+                "is_streaming_supported": true,
+                "multimodal_capabilities": {
+                  "supports_files": false,
+                  "supports_images": false,
+                  "supports_videos": false,
+                  "supports_audio": false,
+                  "supported_file_types": null,
+                  "max_file_size_mb": null
+                },
+                "status": "needs_api_key",
+                "priority": 100,
+                "tags": null,
+                "last_used_at": null,
+                "usage_count": 0,
+                "error_count": 0,
+                "request_timeout": null,
+                "max_retries": 3,
+                "rate_limit_per_minute": null,
+                "created_at": "2025-09-11T03:02:33.206341+00:00",
+                "updated_at": "2025-09-11T03:02:33.206341+00:00"
+              },
+              {
+                "id": "72db2c2d-848c-411e-8206-efd6cb09752c",
+                "alias": "gemini-1.5-pro-full",
+                "provider": "gemini",
+                "model_name": "gemini-1.5-pro",
+                "display_name": "Google Gemini 1.5 Pro (完整配置)",
+                "description": "Google最新的多模态大模型，支持文件和图片上传",
+                "has_api_key": true,
+                "api_base": "https://generativelanguage.googleapis.com/v1beta",
+                "api_version": "v1beta",
+                "max_tokens": 8192,
+                "context_window": 2097152,
+                "default_temperature": 0.7,
+                "default_top_p": null,
+                "is_local": false,
+                "is_streaming_supported": true,
+                "multimodal_capabilities": {
+                  "supports_files": false,
+                  "supports_images": false,
+                  "supports_videos": false,
+                  "supports_audio": false,
+                  "supported_file_types": null,
+                  "max_file_size_mb": null
+                },
+                "status": "configured",
+                "priority": 0,
+                "tags": {
+                  "type": "multimodal",
+                  "version": "1.5-pro",
+                  "provider": "google"
+                },
+                "last_used_at": null,
+                "usage_count": 0,
+                "error_count": 0,
+                "request_timeout": null,
+                "max_retries": 3,
+                "rate_limit_per_minute": null,
+                "created_at": "2025-09-10T08:41:29.548462+00:00",
+                "updated_at": "2025-09-10T08:41:29.548462+00:00"
+              },
+              {
+                "id": "fbf0bafc-5ddc-425b-b418-77bfcb5f9caf",
+                "alias": "test-gemini",
+                "provider": "gemini",
+                "model_name": "gemini-1.5-pro",
+                "display_name": "Test Gemini 1.5 Pro",
+                "description": "测试用的Gemini配置",
+                "has_api_key": false,
+                "api_base": null,
+                "api_version": null,
+                "max_tokens": 4096,
+                "context_window": null,
+                "default_temperature": 0.7,
+                "default_top_p": null,
+                "is_local": false,
+                "is_streaming_supported": true,
+                "multimodal_capabilities": {
+                  "supports_files": false,
+                  "supports_images": false,
+                  "supports_videos": false,
+                  "supports_audio": false,
+                  "supported_file_types": null,
+                  "max_file_size_mb": null
+                },
+                "status": "needs_api_key",
+                "priority": 0,
+                "tags": null,
+                "last_used_at": null,
+                "usage_count": 0,
+                "error_count": 0,
+                "request_timeout": null,
+                "max_retries": 3,
+                "rate_limit_per_minute": null,
+                "created_at": "2025-09-10T08:37:08.727302+00:00",
+                "updated_at": "2025-09-10T08:37:08.727302+00:00"
+              }
+            ],
+            "total": 3,
+            "skip": 0,
+            "limit": 100
+          },
+          "details": "找到 3 个AI模型配置"
+        }
+      ],
+      "overall_status": "pass"
+    }
+  ]
+}

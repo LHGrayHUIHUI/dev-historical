@@ -155,7 +155,8 @@ kubectl apply -f infrastructure/kubernetes/services/
 #### PostgreSQL (端口 5433)  
 - 文件元数据和处理记录
 - 关系数据和审计日志
-- 表: `files`, `processing_jobs`, `user_sessions`
+- AI模型配置和系统提示语 **🆕**
+- 表: `files`, `processing_jobs`, `user_sessions`, `ai_model_configs`, `system_prompt_templates`
 
 #### Redis (端口 6380)
 - 缓存层和会话管理
@@ -215,16 +216,26 @@ infrastructure/kubernetes/     # K8s部署配置
 
 ### 基于Epic的开发
 
-#### 当前状态 (Epic 1 完成 ✅)
+#### 当前状态 (Epic 1-2 完成 ✅, Epic 3 进行中 🟡)
 - **Epic 1**: 微服务基础设施和数据获取 (100% 完成)
   - Story 1.1: 微服务架构 ✅
   - Story 1.2: 数据获取服务 ✅  
   - Story 1.3: 数据采集与存储 ✅
   - Story 1.4: 系统监控与日志 ✅
 
+- **Epic 2**: 数据处理和智能分类 (100% 完成)
+  - Story 2.1: OCR微服务 ✅
+  - Story 2.2: NLP微服务 ✅
+  - Story 2.3: 图像处理服务 ✅
+  - Story 2.4: 知识图谱构建服务 ✅
+  - Story 2.5: 智能分类服务 ✅
+
+- **Epic 3**: AI大模型服务和内容优化 (95% 完成)
+  - Story 3.1: AI大模型服务 ✅ **+ 数据库持久化 ✅**
+  - Story 3.2-3.5: 文本优化服务 (文档阶段 80%)
+
 #### 下一步优先级  
-- **Epic 2**: 数据处理和智能分类 (0% 完成)
-- **Epic 3**: AI大模型服务和内容优化 (0% 完成)  
+- **Epic 3**: 完成剩余文本优化服务实现 (5% 剩余)
 - **Epic 4**: 发布管理和Vue3统一界面 (0% 完成)
 
 ### 服务开发模式

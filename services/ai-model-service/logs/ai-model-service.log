@@ -1,0 +1,238 @@
+2025-09-10 06:38:52,214 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 06:38:52,239 - src.main - INFO - Starting AI Model Service...
+2025-09-10 06:38:52,241 - src.services.model_router - WARNING - Redis connection failed: Error 111 connecting to localhost:6380. 111.
+2025-09-10 06:38:52,250 - src.services.storage_client - ERROR - Request error: All connection attempts failed
+2025-09-10 06:38:52,250 - src.services.model_router - ERROR - Failed to load models: Request error: All connection attempts failed
+2025-09-10 06:38:52,250 - src.services.ai_service - ERROR - Failed to initialize AI Model Service: Request error: All connection attempts failed
+2025-09-10 06:38:52,250 - src.main - ERROR - Failed to initialize AI Model Service: 初始化AI模型服务失败: Request error: All connection attempts failed
+2025-09-10 06:38:52,250 - src.main - INFO - Shutting down AI Model Service...
+2025-09-10 06:38:52,250 - src.main - INFO - AI Model Service shutdown completed
+2025-09-10 06:39:00,188 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 06:39:00,210 - src.main - INFO - Starting AI Model Service...
+2025-09-10 06:39:00,211 - src.services.model_router - WARNING - Redis connection failed: Error 111 connecting to localhost:6380. 111.
+2025-09-10 06:39:00,219 - src.services.storage_client - ERROR - Request error: All connection attempts failed
+2025-09-10 06:39:00,219 - src.services.model_router - ERROR - Failed to load models: Request error: All connection attempts failed
+2025-09-10 06:39:00,219 - src.services.ai_service - ERROR - Failed to initialize AI Model Service: Request error: All connection attempts failed
+2025-09-10 06:39:00,219 - src.main - ERROR - Failed to initialize AI Model Service: 初始化AI模型服务失败: Request error: All connection attempts failed
+2025-09-10 06:39:00,219 - src.main - INFO - Shutting down AI Model Service...
+2025-09-10 06:39:00,219 - src.main - INFO - AI Model Service shutdown completed
+2025-09-10 06:39:04,440 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 06:39:04,460 - src.main - INFO - Starting AI Model Service...
+2025-09-10 06:39:04,462 - src.services.model_router - WARNING - Redis connection failed: Error 111 connecting to localhost:6380. 111.
+2025-09-10 06:39:04,469 - src.services.storage_client - ERROR - Request error: All connection attempts failed
+2025-09-10 06:39:04,469 - src.services.model_router - ERROR - Failed to load models: Request error: All connection attempts failed
+2025-09-10 06:39:04,469 - src.services.ai_service - ERROR - Failed to initialize AI Model Service: Request error: All connection attempts failed
+2025-09-10 06:39:04,469 - src.main - ERROR - Failed to initialize AI Model Service: 初始化AI模型服务失败: Request error: All connection attempts failed
+2025-09-10 06:39:04,470 - src.main - INFO - Shutting down AI Model Service...
+2025-09-10 06:39:04,470 - src.main - INFO - AI Model Service shutdown completed
+2025-09-10 06:39:08,488 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 06:39:08,507 - src.main - INFO - Starting AI Model Service...
+2025-09-10 06:39:08,509 - src.services.model_router - WARNING - Redis connection failed: Error 111 connecting to localhost:6380. 111.
+2025-09-10 06:39:08,516 - src.services.storage_client - ERROR - Request error: All connection attempts failed
+2025-09-10 06:39:08,516 - src.services.model_router - ERROR - Failed to load models: Request error: All connection attempts failed
+2025-09-10 06:39:08,516 - src.services.ai_service - ERROR - Failed to initialize AI Model Service: Request error: All connection attempts failed
+2025-09-10 06:39:08,516 - src.main - ERROR - Failed to initialize AI Model Service: 初始化AI模型服务失败: Request error: All connection attempts failed
+2025-09-10 06:39:08,516 - src.main - INFO - Shutting down AI Model Service...
+2025-09-10 06:39:08,516 - src.main - INFO - AI Model Service shutdown completed
+2025-09-10 06:39:12,915 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 06:39:12,936 - src.main - INFO - Starting AI Model Service...
+2025-09-10 06:39:12,937 - src.services.model_router - WARNING - Redis connection failed: Error 111 connecting to localhost:6380. 111.
+2025-09-10 06:39:12,945 - src.services.storage_client - ERROR - Request error: All connection attempts failed
+2025-09-10 06:39:12,945 - src.services.model_router - ERROR - Failed to load models: Request error: All connection attempts failed
+2025-09-10 06:39:12,946 - src.services.ai_service - ERROR - Failed to initialize AI Model Service: Request error: All connection attempts failed
+2025-09-10 06:39:12,946 - src.main - ERROR - Failed to initialize AI Model Service: 初始化AI模型服务失败: Request error: All connection attempts failed
+2025-09-10 06:39:12,946 - src.main - INFO - Shutting down AI Model Service...
+2025-09-10 06:39:12,946 - src.main - INFO - AI Model Service shutdown completed
+2025-09-10 06:39:17,711 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 06:39:17,731 - src.main - INFO - Starting AI Model Service...
+2025-09-10 06:39:17,732 - src.services.model_router - WARNING - Redis connection failed: Error 111 connecting to localhost:6380. 111.
+2025-09-10 06:39:17,740 - src.services.storage_client - ERROR - Request error: All connection attempts failed
+2025-09-10 06:39:17,740 - src.services.model_router - ERROR - Failed to load models: Request error: All connection attempts failed
+2025-09-10 06:39:17,740 - src.services.ai_service - ERROR - Failed to initialize AI Model Service: Request error: All connection attempts failed
+2025-09-10 06:39:17,740 - src.main - ERROR - Failed to initialize AI Model Service: 初始化AI模型服务失败: Request error: All connection attempts failed
+2025-09-10 06:39:17,740 - src.main - INFO - Shutting down AI Model Service...
+2025-09-10 06:39:17,740 - src.main - INFO - AI Model Service shutdown completed
+2025-09-10 06:39:23,247 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 06:39:23,268 - src.main - INFO - Starting AI Model Service...
+2025-09-10 06:39:23,269 - src.services.model_router - WARNING - Redis connection failed: Error 111 connecting to localhost:6380. 111.
+2025-09-10 06:39:23,276 - src.services.storage_client - ERROR - Request error: All connection attempts failed
+2025-09-10 06:39:23,277 - src.services.model_router - ERROR - Failed to load models: Request error: All connection attempts failed
+2025-09-10 06:39:23,277 - src.services.ai_service - ERROR - Failed to initialize AI Model Service: Request error: All connection attempts failed
+2025-09-10 06:39:23,277 - src.main - ERROR - Failed to initialize AI Model Service: 初始化AI模型服务失败: Request error: All connection attempts failed
+2025-09-10 06:39:23,277 - src.main - INFO - Shutting down AI Model Service...
+2025-09-10 06:39:23,277 - src.main - INFO - AI Model Service shutdown completed
+2025-09-10 06:39:30,244 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 06:39:30,263 - src.main - INFO - Starting AI Model Service...
+2025-09-10 06:39:30,264 - src.services.model_router - WARNING - Redis connection failed: Error 111 connecting to localhost:6380. 111.
+2025-09-10 06:39:30,271 - src.services.storage_client - ERROR - Request error: All connection attempts failed
+2025-09-10 06:39:30,271 - src.services.model_router - ERROR - Failed to load models: Request error: All connection attempts failed
+2025-09-10 06:39:30,271 - src.services.ai_service - ERROR - Failed to initialize AI Model Service: Request error: All connection attempts failed
+2025-09-10 06:39:30,271 - src.main - ERROR - Failed to initialize AI Model Service: 初始化AI模型服务失败: Request error: All connection attempts failed
+2025-09-10 06:39:30,272 - src.main - INFO - Shutting down AI Model Service...
+2025-09-10 06:39:30,272 - src.main - INFO - AI Model Service shutdown completed
+2025-09-10 06:39:40,689 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 06:39:40,711 - src.main - INFO - Starting AI Model Service...
+2025-09-10 06:39:40,713 - src.services.model_router - WARNING - Redis connection failed: Error 111 connecting to localhost:6380. 111.
+2025-09-10 06:39:40,721 - src.services.storage_client - ERROR - Request error: All connection attempts failed
+2025-09-10 06:39:40,721 - src.services.model_router - ERROR - Failed to load models: Request error: All connection attempts failed
+2025-09-10 06:39:40,721 - src.services.ai_service - ERROR - Failed to initialize AI Model Service: Request error: All connection attempts failed
+2025-09-10 06:39:40,721 - src.main - ERROR - Failed to initialize AI Model Service: 初始化AI模型服务失败: Request error: All connection attempts failed
+2025-09-10 06:39:40,721 - src.main - INFO - Shutting down AI Model Service...
+2025-09-10 06:39:40,721 - src.main - INFO - AI Model Service shutdown completed
+2025-09-10 06:39:58,268 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 06:39:58,289 - src.main - INFO - Starting AI Model Service...
+2025-09-10 06:39:58,290 - src.services.model_router - WARNING - Redis connection failed: Error 111 connecting to localhost:6380. 111.
+2025-09-10 06:39:58,298 - src.services.storage_client - ERROR - Request error: All connection attempts failed
+2025-09-10 06:39:58,298 - src.services.model_router - ERROR - Failed to load models: Request error: All connection attempts failed
+2025-09-10 06:39:58,298 - src.services.ai_service - ERROR - Failed to initialize AI Model Service: Request error: All connection attempts failed
+2025-09-10 06:39:58,298 - src.main - ERROR - Failed to initialize AI Model Service: 初始化AI模型服务失败: Request error: All connection attempts failed
+2025-09-10 06:39:58,298 - src.main - INFO - Shutting down AI Model Service...
+2025-09-10 06:39:58,299 - src.main - INFO - AI Model Service shutdown completed
+2025-09-10 06:40:27,850 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 06:40:27,869 - src.main - INFO - Starting AI Model Service...
+2025-09-10 06:40:27,871 - src.services.model_router - WARNING - Redis connection failed: Error 111 connecting to localhost:6380. 111.
+2025-09-10 06:40:27,879 - src.services.storage_client - ERROR - Request error: All connection attempts failed
+2025-09-10 06:40:27,879 - src.services.model_router - ERROR - Failed to load models: Request error: All connection attempts failed
+2025-09-10 06:40:27,879 - src.services.ai_service - ERROR - Failed to initialize AI Model Service: Request error: All connection attempts failed
+2025-09-10 06:40:27,879 - src.main - ERROR - Failed to initialize AI Model Service: 初始化AI模型服务失败: Request error: All connection attempts failed
+2025-09-10 06:40:27,879 - src.main - INFO - Shutting down AI Model Service...
+2025-09-10 06:40:27,879 - src.main - INFO - AI Model Service shutdown completed
+2025-09-10 06:41:24,109 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 06:41:24,130 - src.main - INFO - Starting AI Model Service...
+2025-09-10 06:41:24,131 - src.services.ai_service - INFO - 开始初始化AI Model Service...
+2025-09-10 06:41:24,131 - src.services.ai_service - INFO - AI Model Service initialized successfully (simplified mode)
+2025-09-10 06:41:24,131 - src.main - INFO - AI Model Service initialized successfully
+2025-09-10 06:44:02,861 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 06:44:02,881 - src.main - INFO - Starting AI Model Service...
+2025-09-10 06:44:02,882 - src.services.ai_service_simplified - INFO - 初始化简化AI模型服务...
+2025-09-10 06:44:02,882 - src.services.ai_service_simplified - INFO - 简化AI模型服务初始化成功
+2025-09-10 06:44:02,882 - src.main - INFO - AI Model Service initialized successfully
+2025-09-10 07:03:05,676 - src.controllers.chat_controller - ERROR - Unexpected error in chat completion: 'ChatCompletionRequest' object has no attribute 'model_name'
+2025-09-10 07:04:00,753 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 07:04:00,773 - src.main - INFO - Starting AI Model Service...
+2025-09-10 07:04:00,774 - src.services.ai_service_simplified - INFO - 初始化简化AI模型服务...
+2025-09-10 07:04:00,774 - src.services.ai_service_simplified - INFO - 简化AI模型服务初始化成功
+2025-09-10 07:04:00,774 - src.main - INFO - AI Model Service initialized successfully
+2025-09-10 07:06:31,172 - src.controllers.chat_controller - ERROR - Unexpected error in chat completion: 'ChatCompletionRequest' object has no attribute 'model_name'
+2025-09-10 07:08:52,002 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 07:08:52,022 - src.main - INFO - Starting AI Model Service...
+2025-09-10 07:08:52,022 - src.services.ai_service_simplified - INFO - 初始化简化AI模型服务...
+2025-09-10 07:08:52,022 - src.services.ai_service_simplified - INFO - 简化AI模型服务初始化成功
+2025-09-10 07:08:52,022 - src.main - INFO - AI Model Service initialized successfully
+2025-09-10 07:10:30,701 - src.controllers.chat_controller - INFO - Received chat completion request: model=gemini-1.5-flash, provider=None, messages_count=1
+2025-09-10 07:10:30,702 - src.controllers.chat_controller - ERROR - AI service error: 'ChatCompletionRequest' object has no attribute 'parameters'
+2025-09-10 07:11:24,864 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 07:11:24,888 - src.main - INFO - Starting AI Model Service...
+2025-09-10 07:11:24,889 - src.services.ai_service_simplified - INFO - 初始化简化AI模型服务...
+2025-09-10 07:11:24,889 - src.services.ai_service_simplified - INFO - 简化AI模型服务初始化成功
+2025-09-10 07:11:24,889 - src.main - INFO - AI Model Service initialized successfully
+2025-09-10 07:14:19,349 - src.controllers.chat_controller - INFO - Received chat completion request: model=gemini-1.5-flash, provider=None, messages_count=1
+2025-09-10 07:14:19,356 - src.services.ai_service_simplified - INFO - 处理聊天完成请求: model=gemini-1.5-flash
+2025-09-10 07:14:19,356 - src.services.ai_service_simplified - ERROR - 聊天完成失败: 'dict' object has no attribute 'api_endpoint'
+2025-09-10 07:14:19,361 - src.controllers.chat_controller - INFO - Chat completion successful: response_id=None, response_time=Nonems
+2025-09-10 07:16:08,798 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 07:16:08,819 - src.main - INFO - Starting AI Model Service...
+2025-09-10 07:16:08,819 - src.services.ai_service_simplified - INFO - 初始化简化AI模型服务...
+2025-09-10 07:16:08,820 - src.services.ai_service_simplified - INFO - 简化AI模型服务初始化成功
+2025-09-10 07:16:08,820 - src.main - INFO - AI Model Service initialized successfully
+2025-09-10 07:17:31,916 - src.controllers.chat_controller - INFO - Received chat completion request: model=gemini-1.5-flash, provider=None, messages_count=1
+2025-09-10 07:17:31,918 - src.services.ai_service_simplified - INFO - 处理聊天完成请求: model=gemini-1.5-flash
+2025-09-10 07:17:31,919 - src.services.ai_service_simplified - ERROR - 聊天完成失败: 'SimpleAccount' object has no attribute 'status'
+2025-09-10 07:17:31,923 - src.controllers.chat_controller - INFO - Chat completion successful: response_id=None, response_time=Nonems
+2025-09-10 07:18:49,408 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 07:18:49,430 - src.main - INFO - Starting AI Model Service...
+2025-09-10 07:18:49,430 - src.services.ai_service_simplified - INFO - 初始化简化AI模型服务...
+2025-09-10 07:18:49,431 - src.services.ai_service_simplified - INFO - 简化AI模型服务初始化成功
+2025-09-10 07:18:49,431 - src.main - INFO - AI Model Service initialized successfully
+2025-09-10 07:19:57,437 - src.controllers.chat_controller - INFO - Received chat completion request: model=gemini-1.5-flash, provider=None, messages_count=1
+2025-09-10 07:19:57,439 - src.services.ai_service_simplified - INFO - 处理聊天完成请求: model=gemini-1.5-flash
+2025-09-10 07:19:57,444 - src.services.ai_service_simplified - ERROR - 聊天完成失败: 'SimpleModel' object is not subscriptable
+2025-09-10 07:19:57,446 - src.controllers.chat_controller - INFO - Chat completion successful: response_id=None, response_time=Nonems
+2025-09-10 07:20:37,961 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 07:20:37,982 - src.main - INFO - Starting AI Model Service...
+2025-09-10 07:20:37,982 - src.services.ai_service_simplified - INFO - 初始化简化AI模型服务...
+2025-09-10 07:20:37,982 - src.services.ai_service_simplified - INFO - 简化AI模型服务初始化成功
+2025-09-10 07:20:37,982 - src.main - INFO - AI Model Service initialized successfully
+2025-09-10 07:22:22,556 - src.controllers.chat_controller - INFO - Received chat completion request: model=gemini-1.5-flash, provider=None, messages_count=1
+2025-09-10 07:22:22,557 - src.services.ai_service_simplified - INFO - 处理聊天完成请求: model=gemini-1.5-flash
+2025-09-10 07:22:22,561 - src.controllers.chat_controller - INFO - Chat completion successful: response_id=None, response_time=0.09608268737792969ms
+2025-09-10 07:23:50,315 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 07:23:50,336 - src.main - INFO - Starting AI Model Service...
+2025-09-10 07:23:50,336 - src.services.ai_service_simplified - INFO - 初始化简化AI模型服务...
+2025-09-10 07:23:50,336 - src.services.ai_service_simplified - INFO - 简化AI模型服务初始化成功
+2025-09-10 07:23:50,336 - src.main - INFO - AI Model Service initialized successfully
+2025-09-10 07:24:44,513 - src.controllers.chat_controller - INFO - Received chat completion request: model=gemini-1.5-flash, provider=None, messages_count=1
+2025-09-10 07:24:44,515 - src.services.ai_service_simplified - INFO - 处理聊天完成请求: model=gemini-1.5-flash
+2025-09-10 07:24:46,417 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent "HTTP/1.1 200 OK"
+2025-09-10 07:24:46,419 - src.controllers.chat_controller - INFO - Chat completion successful: response_id=gemini-627a572b, response_time=Nonems
+2025-09-10 07:28:07,438 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 07:28:07,463 - src.main - INFO - Starting AI Model Service...
+2025-09-10 07:28:07,463 - src.services.ai_service_simplified - INFO - 初始化简化AI模型服务...
+2025-09-10 07:28:07,463 - src.services.ai_service_simplified - INFO - 简化AI模型服务初始化成功
+2025-09-10 07:28:07,464 - src.main - INFO - AI Model Service initialized successfully
+2025-09-10 07:49:36,059 - src.controllers.models_management_controller - INFO - Initialized 5 default models
+2025-09-10 07:49:36,076 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 07:49:36,095 - src.controllers.models_management_controller - INFO - Initialized 5 default models
+2025-09-10 07:49:36,118 - src.main - INFO - Starting AI Model Service...
+2025-09-10 07:49:36,118 - src.services.ai_service_simplified - INFO - 初始化简化AI模型服务...
+2025-09-10 07:49:36,119 - src.services.ai_service_simplified - INFO - 简化AI模型服务初始化成功
+2025-09-10 07:49:36,119 - src.main - INFO - AI Model Service initialized successfully
+2025-09-10 07:51:56,209 - src.controllers.chat_controller - INFO - Received chat completion request: model=gemini-1.5-flash, provider=None, messages_count=1
+2025-09-10 07:51:56,210 - src.services.ai_service_simplified - INFO - 处理聊天完成请求: model=gemini-1.5-flash
+2025-09-10 07:51:58,457 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent "HTTP/1.1 200 OK"
+2025-09-10 07:51:58,462 - src.controllers.chat_controller - INFO - Chat completion successful: response_id=gemini-d2b80f50, response_time=Nonems
+2025-09-10 07:52:19,302 - src.controllers.models_management_controller - INFO - Added new model: openai-gpt-4o-test
+2025-09-10 08:46:49,180 - fastapi - WARNING - email-validator not installed, email fields will be treated as str.
+To install, run: pip install email-validator
+2025-09-10 08:51:11,008 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 08:51:11,045 - src.main - INFO - Starting AI Model Service...
+2025-09-10 08:51:11,045 - src.services.ai_service_simplified - INFO - 初始化简化AI模型服务...
+2025-09-10 08:51:11,046 - src.services.ai_service_simplified - INFO - 简化AI模型服务初始化成功
+2025-09-10 08:51:11,046 - src.main - INFO - AI Model Service initialized successfully
+2025-09-10 08:51:36,867 - src.clients.storage_service_client.StorageServiceClient - WARNING - Storage Service连接失败，1秒后重试: All connection attempts failed
+2025-09-10 08:51:37,875 - src.clients.storage_service_client.StorageServiceClient - WARNING - Storage Service连接失败，2秒后重试: All connection attempts failed
+2025-09-10 08:51:39,895 - src.clients.storage_service_client.StorageServiceClient - WARNING - Storage Service连接失败，4秒后重试: All connection attempts failed
+2025-09-10 08:51:43,915 - src.clients.storage_service_client.StorageServiceClient - ERROR - 获取模型列表失败: 无法连接到Storage Service: All connection attempts failed
+2025-09-10 08:51:43,916 - src.controllers.models_management_controller - ERROR - 获取模型列表失败: 无法连接到Storage Service: All connection attempts failed
+2025-09-10 08:53:17,904 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-10 08:53:17,941 - src.main - INFO - Starting AI Model Service...
+2025-09-10 08:53:17,942 - src.services.ai_service_simplified - INFO - 初始化简化AI模型服务...
+2025-09-10 08:53:17,942 - src.services.ai_service_simplified - INFO - 简化AI模型服务初始化成功
+2025-09-10 08:53:17,942 - src.main - INFO - AI Model Service initialized successfully
+2025-09-10 08:53:30,841 - src.clients.storage_service_client.StorageServiceClient - WARNING - Storage Service连接失败，1秒后重试: All connection attempts failed
+2025-09-10 08:53:31,867 - src.clients.storage_service_client.StorageServiceClient - WARNING - Storage Service连接失败，2秒后重试: All connection attempts failed
+2025-09-10 08:53:33,887 - src.clients.storage_service_client.StorageServiceClient - WARNING - Storage Service连接失败，4秒后重试: All connection attempts failed
+2025-09-10 08:53:37,910 - src.clients.storage_service_client.StorageServiceClient - ERROR - 获取模型列表失败: 无法连接到Storage Service: All connection attempts failed
+2025-09-10 08:53:37,911 - src.controllers.models_management_controller - ERROR - 获取模型列表失败: 无法连接到Storage Service: All connection attempts failed
+2025-09-11 01:39:29,054 - fastapi - WARNING - email-validator not installed, email fields will be treated as str.
+To install, run: pip install email-validator
+2025-09-11 02:56:36,333 - __main__ - INFO - Starting AI Model Service on port 8000
+2025-09-11 02:56:36,382 - src.main - INFO - Starting AI Model Service...
+2025-09-11 02:56:36,383 - src.services.ai_service_simplified - INFO - 初始化简化AI模型服务...
+2025-09-11 02:56:36,383 - src.services.ai_service_simplified - INFO - 简化AI模型服务初始化成功
+2025-09-11 02:56:36,383 - src.main - INFO - AI Model Service initialized successfully
+2025-09-11 03:01:05,226 - fastapi - WARNING - email-validator not installed, email fields will be treated as str.
+To install, run: pip install email-validator
+2025-09-11 03:01:10,434 - src.controllers.models_controller - INFO - Listing models, provider filter: None
+2025-09-11 03:01:10,435 - src.services.ai_service - INFO - 开始初始化AI Model Service...
+2025-09-11 03:01:10,436 - src.services.ai_service - INFO - AI Model Service initialized successfully (simplified mode)
+2025-09-11 03:01:10,445 - src.services.model_router - WARNING - Redis connection failed: Error 111 connecting to localhost:6380. 111.
+2025-09-11 03:01:10,478 - src.services.storage_client - ERROR - Request error: All connection attempts failed
+2025-09-11 03:01:10,478 - src.services.model_router - ERROR - Failed to load models: Request error: All connection attempts failed
+2025-09-11 03:01:10,478 - src.services.ai_service - ERROR - Failed to list available models: Request error: All connection attempts failed
+2025-09-11 03:01:10,479 - src.controllers.models_controller - ERROR - AI service error: 获取可用模型列表失败: Request error: All connection attempts failed
+2025-09-11 03:01:24,308 - src.controllers.chat_controller - INFO - Received chat completion request: model=gemini-1.5-flash, provider=None, messages_count=1
+2025-09-11 03:01:24,309 - src.services.ai_service_simplified - INFO - 处理聊天完成请求: model=gemini-1.5-flash
+2025-09-11 03:01:25,390 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent "HTTP/1.1 200 OK"
+2025-09-11 03:01:25,392 - src.controllers.chat_controller - INFO - Chat completion successful: response_id=gemini-ee196fd2, response_time=Nonems
+2025-09-11 03:01:47,202 - src.clients.storage_service_client.StorageServiceClient - WARNING - Storage Service连接失败，1秒后重试: All connection attempts failed
+2025-09-11 03:01:48,211 - src.clients.storage_service_client.StorageServiceClient - WARNING - Storage Service连接失败，2秒后重试: All connection attempts failed
+2025-09-11 03:01:50,223 - src.clients.storage_service_client.StorageServiceClient - WARNING - Storage Service连接失败，4秒后重试: All connection attempts failed
+2025-09-11 03:01:54,233 - src.clients.storage_service_client.StorageServiceClient - ERROR - 创建模型配置失败: 无法连接到Storage Service: All connection attempts failed
+2025-09-11 03:01:54,234 - src.controllers.models_management_controller - ERROR - Failed to add model: 无法连接到Storage Service: All connection attempts failed
+2025-09-11 03:06:55,052 - src.controllers.chat_controller - INFO - Received chat completion request: model=gemini-1.5-flash, provider=None, messages_count=1
+2025-09-11 03:06:55,052 - src.services.ai_service_simplified - INFO - 处理聊天完成请求: model=gemini-1.5-flash
+2025-09-11 03:06:56,368 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent "HTTP/1.1 200 OK"
+2025-09-11 03:06:56,370 - src.controllers.chat_controller - INFO - Chat completion successful: response_id=gemini-578177dc, response_time=Nonems
+2025-09-11 03:06:56,372 - src.controllers.models_controller - INFO - Listing supported providers
+2025-09-11 03:06:56,372 - src.controllers.models_controller - INFO - Listed 7 supported providers

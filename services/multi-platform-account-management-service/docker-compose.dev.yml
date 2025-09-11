@@ -1,0 +1,154 @@
+version: '3.8'
+
+services:
+  # 多平台账号管理服务 - 开发模式
+  multi-platform-account-management-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: account-management-service-dev
+    ports:
+      - "8091:8091"
+    environment:
+      - APP_NAME=Multi-Platform Account Management Service (Development)
+      - DEBUG=true
+      - HOST=0.0.0.0
+      - PORT=8091
+      - DATABASE_URL=postgresql://postgres:dev_password@postgres:5432/historical_text_accounts_dev
+      - REDIS_URL=redis://redis:6379/0
+      - ENCRYPTION_KEY=dev-account-encryption-key-32-chars!
+      - OAUTH_CALLBACK_BASE_URL=http://localhost:8091/api/v1/oauth/callback
+      - DATABASE_POOL_SIZE=5
+      - DATABASE_MAX_OVERFLOW=10
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,http://localhost:5173
+      - ALLOWED_HOSTS=localhost,127.0.0.1,account-management-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - account-management-dev-net
+    volumes:
+      - .:/app  # 开发模式挂载代码目录
+      - ./logs:/app/logs
+    restart: unless-stopped
+    command: ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8091", "--reload", "--log-level", "debug"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8091/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # PostgreSQL数据库 - 开发环境
+  postgres:
+    image: postgres:15-alpine
+    container_name: account-management-postgres-dev
+    environment:
+      - POSTGRES_DB=historical_text_accounts_dev
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=dev_password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8 --lc-collate=C --lc-ctype=C
+    ports:
+      - "5434:5432"  # 不同的端口避免冲突
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./scripts/init-dev.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - account-management-dev-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d historical_text_accounts_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis缓存 - 开发环境
+  redis:
+    image: redis:7-alpine
+    container_name: account-management-redis-dev
+    ports:
+      - "6380:6379"  # 不同的端口避免冲突
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - account-management-dev-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # 数据库管理工具 pgAdmin（可选）
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: account-management-pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    networks:
+      - account-management-dev-net
+    restart: unless-stopped
+    profiles:
+      - with-pgadmin
+
+  # Redis Commander（可选）
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: account-management-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8082:8081"
+    depends_on:
+      - redis
+    networks:
+      - account-management-dev-net
+    restart: unless-stopped
+    profiles:
+      - with-redis-commander
+
+  # 测试数据库（用于运行测试）
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: account-management-postgres-test
+    environment:
+      - POSTGRES_DB=historical_text_accounts_test
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8 --lc-collate=C --lc-ctype=C
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    networks:
+      - account-management-dev-net
+    restart: unless-stopped
+    profiles:
+      - with-test-db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d historical_text_accounts_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+  postgres_test_data:
+    driver: local
+
+networks:
+  account-management-dev-net:
+    driver: bridge
+    name: account-management-dev-network
